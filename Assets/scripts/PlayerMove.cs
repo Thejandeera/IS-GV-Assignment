@@ -9,6 +9,9 @@ public class PlayerMove : MonoBehaviour
     // Drag your nested Camera into this slot in the Inspector
     public Transform playerCamera;
 
+    // NEW: Drag your character model (the one with the Animator component) here
+    public Animator animator;
+
     private CharacterController controller;
     private float xRotation = 0f;
 
@@ -34,7 +37,7 @@ public class PlayerMove : MonoBehaviour
 
         // Up and Down looking (Rotates the Camera)
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f); // Prevents your head from flipping upside down
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
         playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
         // Left and Right looking (Rotates the whole Player body)
@@ -50,17 +53,29 @@ public class PlayerMove : MonoBehaviour
         // Calculate movement relative to where the player is looking
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
 
-        // Apply gravity to push the player down onto the terrain
+        // Apply gravity
         if (controller.isGrounded && verticalVelocity < 0)
         {
-            verticalVelocity = -2f; // Keep a small downward force when walking
+            verticalVelocity = -2f;
         }
         verticalVelocity += gravity * Time.deltaTime;
 
-        // Add the gravity to our movement vector
         move.y = verticalVelocity;
 
-        // Tell the Character Controller to move us (this respects collisions!)
+        // Tell the Character Controller to move us
         controller.Move(move * speed * Time.deltaTime);
+
+        // =======================
+        // ANIMATION LOGIC
+        // =======================
+        // If we assigned an animator in the inspector, update it
+        if (animator != null)
+        {
+            // Calculate how much input the player is giving (from 0 to 1)
+            float currentSpeed = new Vector2(moveX, moveZ).magnitude;
+
+            // Send this number to the Animator Parameter we created
+            animator.SetFloat("Speed", currentSpeed);
+        }
     }
 }
