@@ -3741,6 +3741,7 @@ MonoBehaviour:
   speed: 10
   mouseSensitivity: 5
   playerCamera: {fileID: 1032320698}
+  animator: {fileID: 0}
   gravity: -9.81
 --- !u!23 &365518524
 MeshRenderer:
@@ -10854,8 +10855,61 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7e9b7901c47a0d040a14dbbdabfbf0a5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 934648512}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7e9b7901c47a0d040a14dbbdabfbf0a5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 934648511}
   m_SourcePrefab: {fileID: 100100000, guid: 7e9b7901c47a0d040a14dbbdabfbf0a5, type: 3}
+--- !u!1 &934648510 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7e9b7901c47a0d040a14dbbdabfbf0a5, type: 3}
+  m_PrefabInstance: {fileID: 934648509}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &934648511
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 934648510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbeaf6d977fcf7c41bee81ce1ae1db11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
+  speed: 10
+  mouseSensitivity: 2
+  playerCamera: {fileID: 0}
+  animator: {fileID: 0}
+  gravity: -9.81
+--- !u!143 &934648512
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 934648510}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 1.8
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!4 &937866316 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 442488, guid: ec78ebca7517fb745a45a931cb06d2bd, type: 3}
