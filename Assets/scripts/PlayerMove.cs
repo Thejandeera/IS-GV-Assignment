@@ -10,10 +10,10 @@ public class PlayerMove : MonoBehaviour
     public Animator animator;
 
     // =======================
-    // NEW: AUDIO VARIABLES
+    // AUDIO VARIABLES
     // =======================
     public AudioSource footstepSound;
-    public float stepInterval = 0.4f; // How fast the footsteps happen (lower is faster)
+    public float stepInterval = 0.4f;
     private float stepTimer = 0f;
 
     private CharacterController controller;
@@ -70,28 +70,28 @@ public class PlayerMove : MonoBehaviour
         }
 
         // =======================
-        // NEW: FOOTSTEP LOGIC
+        // FOOTSTEP LOGIC
         // =======================
-        // Only play sound if we are pressing WASD and touching the ground
         if (currentSpeed > 0.1f && controller.isGrounded)
         {
-            stepTimer -= Time.deltaTime; // Count down the timer
+            stepTimer -= Time.deltaTime;
 
-            // When timer hits zero, play a sound!
             if (stepTimer <= 0f)
             {
-                // Randomly change the pitch slightly so it sounds like real, natural footsteps
                 footstepSound.pitch = Random.Range(0.85f, 1.15f);
-
                 footstepSound.Play();
-
-                stepTimer = stepInterval; // Reset the timer for the next step
+                stepTimer = stepInterval;
             }
         }
         else
         {
-            // If we stop walking, reset timer so the next step happens immediately
             stepTimer = 0f;
+
+            // NEW: Instantly cut off the audio the moment the player stops!
+            if (footstepSound.isPlaying)
+            {
+                footstepSound.Stop();
+            }
         }
     }
 }
