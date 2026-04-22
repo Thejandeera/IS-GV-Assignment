@@ -6,11 +6,15 @@ public class PlayerMove : MonoBehaviour
     public float speed = 10f;
     public float mouseSensitivity = 2f;
 
-    // Drag your nested Camera into this slot in the Inspector
     public Transform playerCamera;
-
-    // NEW: Drag your character model (the one with the Animator component) here
     public Animator animator;
+
+    // =======================
+    // NEW: AUDIO VARIABLES
+    // =======================
+    public AudioSource footstepSound;
+    public float stepInterval = 0.4f; // How fast the footsteps happen (lower is faster)
+    private float stepTimer = 0f;
 
     private CharacterController controller;
     private float xRotation = 0f;
@@ -22,8 +26,6 @@ public class PlayerMove : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
-
-        // Locks the mouse cursor to the center of the screen and hides it
         Cursor.lockState = CursorLockMode.Locked;
     }
 
@@ -35,14 +37,10 @@ public class PlayerMove : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-        // Up and Down looking (Rotates the Camera)
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
         playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        // Left and Right looking (Rotates the whole Player body)
         transform.Rotate(Vector3.up * mouseX);
-
 
         // =======================
         // MOVEMENT & GRAVITY
@@ -50,10 +48,8 @@ public class PlayerMove : MonoBehaviour
         float moveX = Input.GetAxis("Horizontal");
         float moveZ = Input.GetAxis("Vertical");
 
-        // Calculate movement relative to where the player is looking
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
 
-        // Apply gravity
         if (controller.isGrounded && verticalVelocity < 0)
         {
             verticalVelocity = -2f;
@@ -61,21 +57,41 @@ public class PlayerMove : MonoBehaviour
         verticalVelocity += gravity * Time.deltaTime;
 
         move.y = verticalVelocity;
-
-        // Tell the Character Controller to move us
         controller.Move(move * speed * Time.deltaTime);
 
         // =======================
-        // ANIMATION LOGIC
+        // ANIMATION
         // =======================
-        // If we assigned an animator in the inspector, update it
+        float currentSpeed = new Vector2(moveX, moveZ).magnitude;
+
         if (animator != null)
         {
-            // Calculate how much input the player is giving (from 0 to 1)
-            float currentSpeed = new Vector2(moveX, moveZ).magnitude;
-
-            // Send this number to the Animator Parameter we created
             animator.SetFloat("Speed", currentSpeed);
+        }
+
+        // =======================
+        // NEW: FOOTSTEP LOGIC
+        // =======================
+        // Only play sound if we are pressing WASD and touching the ground
+        if (currentSpeed > 0.1f && controller.isGrounded)
+        {
+            stepTimer -= Time.deltaTime; // Count down the timer
+
+            // When timer hits zero, play a sound!
+            if (stepTimer <= 0f)
+            {
+                // Randomly change the pitch slightly so it sounds like real, natural footsteps
+                footstepSound.pitch = Random.Range(0.85f, 1.15f);
+
+                footstepSound.Play();
+
+                stepTimer = stepInterval; // Reset the timer for the next step
+            }
+        }
+        else
+        {
+            // If we stop walking, reset timer so the next step happens immediately
+            stepTimer = 0f;
         }
     }
 }
