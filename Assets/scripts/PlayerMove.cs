@@ -10,16 +10,18 @@ public class PlayerMove : MonoBehaviour
     public Animator animator;
 
     // =======================
-    // AUDIO VARIABLES
+    // AUDIO & JUMP VARIABLES
     // =======================
     public AudioSource footstepSound;
     public float stepInterval = 0.4f;
     private float stepTimer = 0f;
 
+    public AudioSource jumpSound;
+    public float jumpHeight = 1.5f;
+
     private CharacterController controller;
     private float xRotation = 0f;
 
-    // Variables for gravity
     private float verticalVelocity = 0f;
     public float gravity = -9.81f;
 
@@ -43,24 +45,54 @@ public class PlayerMove : MonoBehaviour
         transform.Rotate(Vector3.up * mouseX);
 
         // =======================
-        // MOVEMENT & GRAVITY
+        // MOVEMENT
         // =======================
         float moveX = Input.GetAxis("Horizontal");
         float moveZ = Input.GetAxis("Vertical");
 
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
 
-        if (controller.isGrounded && verticalVelocity < 0)
-        {
-            verticalVelocity = -2f;
-        }
-        verticalVelocity += gravity * Time.deltaTime;
-
-        move.y = verticalVelocity;
-        controller.Move(move * speed * Time.deltaTime);
+        // NEW FIX: Multiply horizontal movement by speed FIRST!
+        move *= speed;
 
         // =======================
-        // ANIMATION
+        // GRAVITY & JUMPING
+        // =======================
+        if (controller.isGrounded)
+        {
+            if (verticalVelocity < 0)
+            {
+                verticalVelocity = -2f;
+            }
+
+            // You can jump anytime you are on the ground (moving or stopped!)
+            if (Input.GetButtonDown("Jump"))
+            {
+                verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+                if (animator != null)
+                {
+                    animator.SetTrigger("JumpTrigger");
+                }
+
+                if (jumpSound != null)
+                {
+                    jumpSound.Play();
+                }
+            }
+        }
+
+        // Apply gravity over time
+        verticalVelocity += gravity * Time.deltaTime;
+
+        // Apply the raw vertical velocity to our movement
+        move.y = verticalVelocity;
+
+        // NEW FIX: Only multiply by Time.deltaTime here, so gravity stays accurate!
+        controller.Move(move * Time.deltaTime);
+
+        // =======================
+        // ANIMATION & FOOTSTEPS
         // =======================
         float currentSpeed = new Vector2(moveX, moveZ).magnitude;
 
@@ -69,9 +101,6 @@ public class PlayerMove : MonoBehaviour
             animator.SetFloat("Speed", currentSpeed);
         }
 
-        // =======================
-        // FOOTSTEP LOGIC
-        // =======================
         if (currentSpeed > 0.1f && controller.isGrounded)
         {
             stepTimer -= Time.deltaTime;
@@ -86,8 +115,6 @@ public class PlayerMove : MonoBehaviour
         else
         {
             stepTimer = 0f;
-
-            // NEW: Instantly cut off the audio the moment the player stops!
             if (footstepSound.isPlaying)
             {
                 footstepSound.Stop();
