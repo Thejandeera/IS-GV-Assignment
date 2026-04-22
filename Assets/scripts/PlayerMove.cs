@@ -6,24 +6,28 @@ public class PlayerMove : MonoBehaviour
     public float speed = 10f;
     public float mouseSensitivity = 2f;
 
-    // Drag your nested Camera into this slot in the Inspector
     public Transform playerCamera;
-
-    // NEW: Drag your character model (the one with the Animator component) here
     public Animator animator;
+
+    // =======================
+    // AUDIO & JUMP VARIABLES
+    // =======================
+    public AudioSource footstepSound;
+    public float stepInterval = 0.4f;
+    private float stepTimer = 0f;
+
+    public AudioSource jumpSound;
+    public float jumpHeight = 1.5f;
 
     private CharacterController controller;
     private float xRotation = 0f;
 
-    // Variables for gravity
     private float verticalVelocity = 0f;
     public float gravity = -9.81f;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
-
-        // Locks the mouse cursor to the center of the screen and hides it
         Cursor.lockState = CursorLockMode.Locked;
     }
 
@@ -35,47 +39,86 @@ public class PlayerMove : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-        // Up and Down looking (Rotates the Camera)
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
         playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        // Left and Right looking (Rotates the whole Player body)
         transform.Rotate(Vector3.up * mouseX);
 
-
         // =======================
-        // MOVEMENT & GRAVITY
+        // MOVEMENT
         // =======================
         float moveX = Input.GetAxis("Horizontal");
         float moveZ = Input.GetAxis("Vertical");
 
-        // Calculate movement relative to where the player is looking
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
 
-        // Apply gravity
-        if (controller.isGrounded && verticalVelocity < 0)
+        // NEW FIX: Multiply horizontal movement by speed FIRST!
+        move *= speed;
+
+        // =======================
+        // GRAVITY & JUMPING
+        // =======================
+        if (controller.isGrounded)
         {
-            verticalVelocity = -2f;
+            if (verticalVelocity < 0)
+            {
+                verticalVelocity = -2f;
+            }
+
+            // You can jump anytime you are on the ground (moving or stopped!)
+            if (Input.GetButtonDown("Jump"))
+            {
+                verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+                if (animator != null)
+                {
+                    animator.SetTrigger("JumpTrigger");
+                }
+
+                if (jumpSound != null)
+                {
+                    jumpSound.Play();
+                }
+            }
         }
+
+        // Apply gravity over time
         verticalVelocity += gravity * Time.deltaTime;
 
+        // Apply the raw vertical velocity to our movement
         move.y = verticalVelocity;
 
-        // Tell the Character Controller to move us
-        controller.Move(move * speed * Time.deltaTime);
+        // NEW FIX: Only multiply by Time.deltaTime here, so gravity stays accurate!
+        controller.Move(move * Time.deltaTime);
 
         // =======================
-        // ANIMATION LOGIC
+        // ANIMATION & FOOTSTEPS
         // =======================
-        // If we assigned an animator in the inspector, update it
+        float currentSpeed = new Vector2(moveX, moveZ).magnitude;
+
         if (animator != null)
         {
-            // Calculate how much input the player is giving (from 0 to 1)
-            float currentSpeed = new Vector2(moveX, moveZ).magnitude;
-
-            // Send this number to the Animator Parameter we created
             animator.SetFloat("Speed", currentSpeed);
+        }
+
+        if (currentSpeed > 0.1f && controller.isGrounded)
+        {
+            stepTimer -= Time.deltaTime;
+
+            if (stepTimer <= 0f)
+            {
+                footstepSound.pitch = Random.Range(0.85f, 1.15f);
+                footstepSound.Play();
+                stepTimer = stepInterval;
+            }
+        }
+        else
+        {
+            stepTimer = 0f;
+            if (footstepSound.isPlaying)
+            {
+                footstepSound.Stop();
+            }
         }
     }
 }
