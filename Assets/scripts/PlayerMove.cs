@@ -34,14 +34,22 @@ public class PlayerMove : MonoBehaviour
     void Update()
     {
         // =======================
-        // MOUSE LOOK
+        // MOUSE LOOK (Smoothed with Time.deltaTime)
         // =======================
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+        // Multiplied by Time.deltaTime and 100f to keep sensitivity consistent across frame rates
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime * 100f;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime * 100f;
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
+        // Rotates the camera up and down
+        if (playerCamera != null)
+        {
+            playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        }
+
+        // Rotates the whole player body left and right
         transform.Rotate(Vector3.up * mouseX);
 
         // =======================
@@ -52,7 +60,7 @@ public class PlayerMove : MonoBehaviour
 
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
 
-        // NEW FIX: Multiply horizontal movement by speed FIRST!
+        // Multiply horizontal movement by speed FIRST!
         move *= speed;
 
         // =======================
@@ -88,7 +96,7 @@ public class PlayerMove : MonoBehaviour
         // Apply the raw vertical velocity to our movement
         move.y = verticalVelocity;
 
-        // NEW FIX: Only multiply by Time.deltaTime here, so gravity stays accurate!
+        // Only multiply by Time.deltaTime here, so gravity stays accurate!
         controller.Move(move * Time.deltaTime);
 
         // =======================
@@ -107,15 +115,18 @@ public class PlayerMove : MonoBehaviour
 
             if (stepTimer <= 0f)
             {
-                footstepSound.pitch = Random.Range(0.85f, 1.15f);
-                footstepSound.Play();
+                if (footstepSound != null)
+                {
+                    footstepSound.pitch = Random.Range(0.85f, 1.15f);
+                    footstepSound.Play();
+                }
                 stepTimer = stepInterval;
             }
         }
         else
         {
             stepTimer = 0f;
-            if (footstepSound.isPlaying)
+            if (footstepSound != null && footstepSound.isPlaying)
             {
                 footstepSound.Stop();
             }
