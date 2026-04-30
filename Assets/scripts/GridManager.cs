@@ -13,6 +13,10 @@ public class GridManager : MonoBehaviour
     public LayerMask obstacleLayer; // The layer assigned to the fallen logs/rocks
     public Vector2 gridWorldSize;   // Total size of the map area to cover
     public float nodeRadius = 1.5f; // How big each square grid cell is
+    
+    [Header("Visual Path Settings")]
+    [Tooltip("The terrain texture index for your mud/dirt path. (0 is usually grass, 1 or 2 is mud)")]
+    public int mudTextureIndex = 1; // Used to color the graph nodes yellow!
 
     Node[,] grid;
     float nodeDiameter;
@@ -47,11 +51,25 @@ public class GridManager : MonoBehaviour
                 // START OPTIMIZATION: Use Raycasts from the sky as explicitly required by the assignment
                 Vector3 rayStart = new Vector3(worldPoint.x, 100f, worldPoint.z); // Cast from high above the terrain
                 bool walkable = true;
+                bool isMud = false;
+
+                // FIX: Ensure nodes stick perfectly to the ground even if the ray hits a tree canopy!
+                if (Terrain.activeTerrain != null)
+                {
+                    worldPoint.y = Terrain.activeTerrain.SampleHeight(worldPoint);
+                    
+                    // GRAPHICS ENHANCEMENT: Detect if this node is on the mud path using the Terrain's painted textures!
+                    int dominantTexture = GetDominantTextureIndex(worldPoint);
+                    if (dominantTexture == mudTextureIndex)
+                    {
+                        isMud = true;
+                    }
+                }
 
                 if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 200f))
                 {
-                    // Update worldPoint.y to the hit point so our graph perfectly hugs uneven terrain!
-                    worldPoint.y = hit.point.y;
+                    // If the terrain is missing, fallback to raycast height
+                    if (Terrain.activeTerrain == null) worldPoint.y = hit.point.y;
 
                     // If the very first thing the raycast hits from the sky is an Obstacle layer, it's blocked.
                     if (((1 << hit.collider.gameObject.layer) & obstacleLayer) != 0)
@@ -69,7 +87,7 @@ public class GridManager : MonoBehaviour
                 // END OPTIMIZATION
                 
                 // Create the Node data container and save it into our 2D array
-                grid[x, y] = new Node(walkable, worldPoint, x, y);
+                grid[x, y] = new Node(walkable, worldPoint, x, y, isMud);
             }
         }
     }
@@ -176,6 +194,49 @@ public class GridManager : MonoBehaviour
         // END OPTIMIZATION
     }
 
+    // ==============================================================================
+    // TERRAIN TEXTURE DETECTION (GRAPHICS ROLE BONUS)
+    // ==============================================================================
+    int GetDominantTextureIndex(Vector3 worldPos)
+    {
+        Terrain t = Terrain.activeTerrain;
+        if (t == null) return 0;
+
+        TerrainData td = t.terrainData;
+        
+        // Convert world position to terrain splatmap coordinates
+        float mapX = ((worldPos.x - t.transform.position.x) / td.size.x) * td.alphamapWidth;
+        float mapZ = ((worldPos.z - t.transform.position.z) / td.size.z) * td.alphamapHeight;
+
+        int x = Mathf.FloorToInt(mapX);
+        int z = Mathf.FloorToInt(mapZ);
+        
+        if (x < 0 || z < 0 || x >= td.alphamapWidth || z >= td.alphamapHeight)
+            return 0;
+
+        // Get the texture blend at this specific point
+        float[,,] splatmapData = td.GetAlphamaps(x, z, 1, 1);
+        float[] cellMix = new float[splatmapData.GetUpperBound(2) + 1];
+
+        for (int i = 0; i < cellMix.Length; i++)
+        {
+            cellMix[i] = splatmapData[0, 0, i];
+        }
+
+        // Find the index of the texture with the highest influence
+        float maxMix = 0;
+        int maxIndex = 0;
+        for (int i = 0; i < cellMix.Length; i++)
+        {
+            if (cellMix[i] > maxMix)
+            {
+                maxIndex = i;
+                maxMix = cellMix[i];
+            }
+        }
+        return maxIndex;
+    }
+
 
     // ==============================================================================
     // VIVA DEBUGGER (Visualizing the Graph for the Teachers)
@@ -189,8 +250,15 @@ public class GridManager : MonoBehaviour
         {
             foreach (Node n in grid)
             {
-                // Draw Green cubes for Walkable ground, Red cubes for Blocked Obstacles
-                Gizmos.color = n.isWalkable ? new Color(0, 1, 0, 0.3f) : new Color(1, 0, 0, 0.5f);
+                // Draw Green cubes for Grass Walkable, Yellow cubes for Mud Path, Red cubes for Blocked Obstacles
+                if (!n.isWalkable)
+                {
+                    Gizmos.color = new Color(1, 0, 0, 0.5f); // Red
+                }
+                else
+                {
+                    Gizmos.color = n.isMudPath ? new Color(1f, 0.6f, 0f, 0.6f) : new Color(0, 1, 0, 0.3f); // Orange/Yellow for Mud, Green for Grass
+                }
                 Gizmos.DrawCube(n.worldPosition, Vector3.one * (nodeDiameter - 0.1f));
             }
         }
