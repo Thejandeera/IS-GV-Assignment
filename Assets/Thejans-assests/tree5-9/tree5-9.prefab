@@ -10,7 +10,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1793094226105878, guid: fb5ab9ff494eb564b88e64da94186554, type: 3}
       propertyPath: m_Name
-      value: Tree 9 Variant
+      value: tree5-9
+      objectReference: {fileID: 0}
+    - target: {fileID: 1793094226105878, guid: fb5ab9ff494eb564b88e64da94186554, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4621651515350696, guid: fb5ab9ff494eb564b88e64da94186554, type: 3}
       propertyPath: m_LocalPosition.x
