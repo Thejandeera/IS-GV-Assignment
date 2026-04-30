@@ -44,8 +44,29 @@ public class GridManager : MonoBehaviour
                 // Find the exact 3D world position of this specific grid cell
                 Vector3 worldPoint = worldBottomLeft + Vector3.right * (x * nodeDiameter + nodeRadius) + Vector3.forward * (y * nodeDiameter + nodeRadius);
                 
-                // FIRE PHYSICS CHECK: If a sphere hits our 'Obstacle' layer, this cell becomes FALSE (Blocked)
-                bool walkable = !Physics.CheckSphere(worldPoint, nodeRadius, obstacleLayer);
+                // START OPTIMIZATION: Use Raycasts from the sky as explicitly required by the assignment
+                Vector3 rayStart = new Vector3(worldPoint.x, 100f, worldPoint.z); // Cast from high above the terrain
+                bool walkable = true;
+
+                if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 200f))
+                {
+                    // Update worldPoint.y to the hit point so our graph perfectly hugs uneven terrain!
+                    worldPoint.y = hit.point.y;
+
+                    // If the very first thing the raycast hits from the sky is an Obstacle layer, it's blocked.
+                    if (((1 << hit.collider.gameObject.layer) & obstacleLayer) != 0)
+                    {
+                        walkable = false;
+                    }
+                }
+
+                // Additional Check: Even if the raycast hits the ground, check if there's a nearby obstacle via Sphere.
+                // This prevents the drone from clipping into wide trees that the thin ray might have missed.
+                if (walkable && Physics.CheckSphere(worldPoint, nodeRadius, obstacleLayer))
+                {
+                    walkable = false;
+                }
+                // END OPTIMIZATION
                 
                 // Create the Node data container and save it into our 2D array
                 grid[x, y] = new Node(walkable, worldPoint, x, y);
@@ -61,19 +82,23 @@ public class GridManager : MonoBehaviour
             for (int y = 0; y < gridSizeY; y++)
             {
                 Node currentNode = grid[x, y];
-                
-                // We only need to find neighbors for paths the drone can actually fly on
-                if (currentNode.isWalkable)
-                {
-                    currentNode.neighbors.Clear(); // Clear old neighbors before rebuilding
-
-                    // Add the 4 adjacent cells (Right, Left, Up, Down)
-                    AddNeighbor(currentNode, x + 1, y);
-                    AddNeighbor(currentNode, x - 1, y);
-                    AddNeighbor(currentNode, x, y + 1);
-                    AddNeighbor(currentNode, x, y - 1);
-                }
+                UpdateNodeNeighbors(currentNode);
             }
+        }
+    }
+
+    // Extracted logic to update a single node's neighbors
+    void UpdateNodeNeighbors(Node currentNode)
+    {
+        currentNode.neighbors.Clear(); // Clear old neighbors before rebuilding
+
+        if (currentNode.isWalkable)
+        {
+            // Add the 4 adjacent cells (Right, Left, Up, Down)
+            AddNeighbor(currentNode, currentNode.gridX + 1, currentNode.gridY);
+            AddNeighbor(currentNode, currentNode.gridX - 1, currentNode.gridY);
+            AddNeighbor(currentNode, currentNode.gridX, currentNode.gridY + 1);
+            AddNeighbor(currentNode, currentNode.gridX, currentNode.gridY - 1);
         }
     }
 
@@ -129,11 +154,26 @@ public class GridManager : MonoBehaviour
         // 1. Find the specific node on the grid where the log was just moved from
         Node nodeToUpdate = GetNodeFromWorldPoint(worldPosition);
         
+        // Skip if the state isn't actually changing (Optimization)
+        if (nodeToUpdate.isWalkable == isNowWalkable) return;
+        
         // 2. Change its status (e.g., from blocked to walkable)
         nodeToUpdate.isWalkable = isNowWalkable;
         
-        // 3. Rebuild the adjacency list so Student 3's A* algorithm knows a new path just opened up!
-        BuildAdjacencyList(); 
+        // 3. START OPTIMIZATION: Only update the specific node and its neighbors!
+        // We DO NOT need to call BuildAdjacencyList() to loop through the entire map again.
+        // This makes the physics interaction O(1) instead of O(N), preventing game lag when logs move.
+        UpdateNodeNeighbors(nodeToUpdate);
+
+        // Also tell the surrounding neighbors to update their own connections to this node
+        int x = nodeToUpdate.gridX;
+        int y = nodeToUpdate.gridY;
+        
+        if (x + 1 < gridSizeX) UpdateNodeNeighbors(grid[x + 1, y]);
+        if (x - 1 >= 0) UpdateNodeNeighbors(grid[x - 1, y]);
+        if (y + 1 < gridSizeY) UpdateNodeNeighbors(grid[x, y + 1]);
+        if (y - 1 >= 0) UpdateNodeNeighbors(grid[x, y - 1]);
+        // END OPTIMIZATION
     }
 
 
