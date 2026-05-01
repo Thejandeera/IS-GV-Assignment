@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 
 // ==============================================================================
-// INTELLIGENT SEARCH / BFS PATHFINDING ROLE (STUDENT 4)
 // Description: Implements the BFS Pathfinding Algorithm as a secondary/backup search.
 // Includes a Toggleable Debug Mode (Task 2, 3, 4) to visualize the AI's "brain".
 // ==============================================================================
