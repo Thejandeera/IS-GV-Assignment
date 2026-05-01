@@ -15,20 +15,20 @@ public class Student1Tools : EditorWindow
         }
 
         int count = 0;
-        
+
         // Find all MeshRenderers in the scene (since trees and rocks usually have meshes)
         MeshRenderer[] allRenderers = FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None);
-        
+
         foreach (MeshRenderer r in allRenderers)
         {
             GameObject go = r.gameObject;
             string name = go.name.ToLower();
-            
+
             // If the name contains tree, rock, or log, we assume it's an obstacle
             if (name.Contains("tree") || name.Contains("rock") || name.Contains("log") || name.Contains("stump") || name.Contains("bush"))
             {
                 Undo.RecordObject(go, "Setup Obstacle");
-                
+
                 // 1. Set the Layer to Obstacle
                 go.layer = obstacleLayer;
 
@@ -37,23 +37,23 @@ public class Student1Tools : EditorWindow
                 if (col == null)
                 {
                     // Prefer MeshCollider for rocks, Capsule/Box for trees
-                    if (name.Contains("tree")) 
+                    if (name.Contains("tree"))
                     {
                         CapsuleCollider cap = go.AddComponent<CapsuleCollider>();
                         // Give it a reasonable default size for a tree trunk
                         cap.radius = 0.5f;
                         cap.height = 5f;
-                    } 
-                    else 
+                    }
+                    else
                     {
                         go.AddComponent<MeshCollider>();
                     }
                 }
-                
+
                 count++;
             }
         }
-        
+
         Debug.Log($"<color=green><b>Success!</b></color> Assigned the Obstacle layer and Colliders to {count} trees/rocks/logs in the scene.");
     }
 
@@ -82,7 +82,7 @@ public class Student1Tools : EditorWindow
                 l.color = new Color(0.4f, 0.45f, 0.6f); // Cold storm light
                 l.intensity = 0.6f;
                 l.shadowStrength = 0.8f;
-                
+
                 // Turn on soft shadows if they aren't already
                 l.shadows = LightShadows.Soft;
             }
@@ -97,8 +97,10 @@ public class Student1Tools : EditorWindow
         // 1. Fog Setup
         RenderSettings.fog = false;
 
-        // 2. Ambient Lighting Setup (Default Skybox)
-        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;
+        // 2. Ambient Lighting Setup (Fixed for black shadows)
+        // Using "Flat" instead of "Skybox" guarantees the shadows will be filled with light immediately
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.6f, 0.65f, 0.7f); // Soft, bright sky-blue bounce light
 
         // 3. Directional Light Setup
         Light[] allLights = FindObjectsByType<Light>(FindObjectsSortMode.None);
@@ -108,10 +110,14 @@ public class Student1Tools : EditorWindow
             {
                 Undo.RecordObject(l, "Reset Light");
                 l.color = new Color(1f, 0.95f, 0.83f); // Warm sun light
-                l.intensity = 1.0f;
+                l.intensity = 1.2f; // Slightly boost the sun intensity for URP
+
+                // 4. FIX THE SHARPNESS AND DARKNESS HERE
+                l.shadows = LightShadows.Soft; // Force shadows to have soft, realistic edges
+                l.shadowStrength = 0.7f;       // Make shadows slightly transparent so we can see the grass inside them
             }
         }
 
-        Debug.Log("<color=yellow><b>Atmosphere Reset!</b></color> Your lighting is back to the default sunny view.");
+        Debug.Log("<color=yellow><b>Atmosphere Reset!</b></color> Your lighting is back to the default realistic view.");
     }
 }
