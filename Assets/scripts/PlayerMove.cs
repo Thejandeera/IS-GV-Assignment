@@ -10,6 +10,10 @@ public class PlayerMove : MonoBehaviour
     public Transform playerCamera;
     public Animator animator;
 
+    [Header("Model Rotation Settings")]
+    public Transform characterModel; // The visual model we want to spin
+    public float turnSpeed = 15f;    // How fast the character spins around
+
     public AudioSource footstepSound;
     public float stepInterval = 0.4f;
     private float stepTimer = 0f;
@@ -27,6 +31,12 @@ public class PlayerMove : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
+
+        // Auto-assign the character model if it was left empty, using the Animator's transform
+        if (characterModel == null && animator != null)
+        {
+            characterModel = animator.transform;
+        }
     }
 
     void Update()
@@ -51,6 +61,18 @@ public class PlayerMove : MonoBehaviour
 
         float activeSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * sprintMultiplier : speed;
         move *= activeSpeed;
+
+        // --- NEW: CHARACTER VISUAL ROTATION ---
+        // We ensure we aren't rotating the main root object to avoid spinning the camera
+        if (characterModel != null && characterModel != this.transform)
+        {
+            // If pressing 'S' (moving backward), set target angle to 180. Otherwise, 0.
+            float targetYRotation = (moveZ < -0.1f) ? 180f : 0f;
+
+            // Smoothly rotate the visual model to face the correct direction
+            Quaternion targetRotation = Quaternion.Euler(0f, targetYRotation, 0f);
+            characterModel.localRotation = Quaternion.Slerp(characterModel.localRotation, targetRotation, Time.deltaTime * turnSpeed);
+        }
 
         if (controller.isGrounded)
         {
@@ -99,7 +121,7 @@ public class PlayerMove : MonoBehaviour
                     footstepSound.pitch = Random.Range(0.85f, 1.15f);
                     footstepSound.Play();
                 }
-                
+
                 stepTimer = Input.GetKey(KeyCode.LeftShift) ? stepInterval / sprintMultiplier : stepInterval;
             }
         }
