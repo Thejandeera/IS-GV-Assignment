@@ -2239,7 +2239,7 @@ MonoBehaviour:
   propellerSpeed: 1500
   propellers: []
   target: {fileID: 2106785385}
-  currentAlgorithm: 0
+  currentAlgorithm: 1
   bfsAlgorithm: {fileID: 0}
   aStarAlgorithm: {fileID: 0}
 --- !u!82 &748253183
@@ -5743,15 +5743,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.4
+      value: 3.1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4
+      value: 4.1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 93.5
+      value: 86.1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalRotation.w
