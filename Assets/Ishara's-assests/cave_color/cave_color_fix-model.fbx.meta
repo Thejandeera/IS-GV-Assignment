@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< Updated upstream:Assets/Ishara's-assests/cave_color/cave_color-model.fbx.meta
 guid: 88ed4a5755146304488f81e0345327cb
+=======
+guid: b2af72f02a6afe6468010036550d09b2
+>>>>>>> Stashed changes:Assets/Ishara's-assests/cave_color/cave_color_fix-model.fbx.meta
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
