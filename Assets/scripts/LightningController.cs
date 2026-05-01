@@ -4,17 +4,18 @@ using System.Collections;
 public class LightningController : MonoBehaviour
 {
     [Header("Lightning Settings")]
-    public Light lightningLight;           // Drag your Directional Light (Sun) here
-    public float minTimeBetweenFlashes = 8f;
-    public float maxTimeBetweenFlashes = 20f;
-    public float flashIntensity = 5f;      // How bright the flash is
+    public Light lightningLight;           
+    
+    // FIXED: Lowered these numbers so lightning strikes much more often! (Every 2 to 7 seconds)
+    public float minTimeBetweenFlashes = 2f;
+    public float maxTimeBetweenFlashes = 7f;
+    public float flashIntensity = 5f;      
 
     [Header("Audio Settings")]
-    public AudioSource thunderAudio;       // Drag this object's Audio Source here
+    public AudioSource thunderAudio;       
 
     private float originalIntensity;
 
-    // OnEnable runs every time this object is turned on
     void OnEnable()
     {
         if (lightningLight != null)
@@ -28,7 +29,7 @@ public class LightningController : MonoBehaviour
     {
         while (true)
         {
-            // 1. Wait for a random amount of time
+            // 1. Wait for a random amount of time (now much shorter)
             float waitTime = Random.Range(minTimeBetweenFlashes, maxTimeBetweenFlashes);
             yield return new WaitForSeconds(waitTime);
 
@@ -42,27 +43,23 @@ public class LightningController : MonoBehaviour
         if (lightningLight == null) yield break;
 
         // --- THE VISUAL FLASH ---
-        // Flash 1 (Main Strike)
         lightningLight.intensity = flashIntensity;
-        yield return new WaitForSeconds(Random.Range(0.05f, 0.1f)); // Very fast flash
+        yield return new WaitForSeconds(Random.Range(0.05f, 0.1f)); 
         lightningLight.intensity = originalIntensity;
 
-        // Tiny dark pause
         yield return new WaitForSeconds(Random.Range(0.05f, 0.15f));
 
-        // Flash 2 (Smaller secondary flicker that real lightning does)
-        lightningLight.intensity = flashIntensity * 0.6f;
+        lightningLight.intensity = flashIntensity * 0.6f; 
         yield return new WaitForSeconds(Random.Range(0.05f, 0.1f));
         lightningLight.intensity = originalIntensity;
 
-        // --- THE AUDIO (Delayed realistically) ---
+        // --- THE AUDIO ---
         if (thunderAudio != null)
         {
-            // Light travels faster than sound. Wait 0.5 to 2 seconds before the boom hits!
-            yield return new WaitForSeconds(Random.Range(0.5f, 2.0f));
-
-            // Randomize the pitch slightly so the thunder sounds different every time
-            thunderAudio.pitch = Random.Range(0.85f, 1.15f);
+            // FIXED: Drastically reduced the delay so the thunder cracks almost immediately!
+            yield return new WaitForSeconds(Random.Range(0.1f, 0.4f));
+            
+            thunderAudio.pitch = Random.Range(0.85f, 1.15f); 
             thunderAudio.Play();
         }
     }
