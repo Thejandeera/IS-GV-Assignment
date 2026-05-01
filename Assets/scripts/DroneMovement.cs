@@ -20,8 +20,16 @@ public class DroneMovement : MonoBehaviour
     private List<Node> currentPath;
     private int currentPathIndex = 0;
 
-    private bool startMoving = false;
-    private float baseY; // To keep the drone at a consistent height while bobbing
+    public enum ActiveAlgorithm
+    {
+        BFS,
+        AStar
+    }
+
+    [Header("Search Algorithms Setup")]
+    public ActiveAlgorithm currentAlgorithm = ActiveAlgorithm.AStar; // Default to A*
+    public BFSSearchAlgorithm bfsAlgorithm;
+    public AStarSearchAlgorithm aStarAlgorithm;
 
     void Start()
     {
@@ -31,6 +39,10 @@ public class DroneMovement : MonoBehaviour
             Debug.LogError("GridManager not found in the scene!");
         }
 
+        // Try to find the scripts automatically if not assigned
+        if (bfsAlgorithm == null) bfsAlgorithm = FindObjectOfType<BFSSearchAlgorithm>();
+        if (aStarAlgorithm == null) aStarAlgorithm = FindObjectOfType<AStarSearchAlgorithm>();
+        
         // Record starting height for hover bobbing
         baseY = transform.position.y; 
     }
@@ -75,7 +87,30 @@ public class DroneMovement : MonoBehaviour
         // 2. Continuously try to find a path if we have a target and no path yet
         if (target != null && (currentPath == null || currentPath.Count == 0))
         {
-            FindPathBFS(transform.position, target.position);
+            if (currentAlgorithm == ActiveAlgorithm.BFS && bfsAlgorithm != null)
+            {
+                currentPath = bfsAlgorithm.FindPath(gridManager, transform.position, target.position);
+                
+                if (currentPath != null && currentPath.Count > 0)
+                {
+                    currentPathIndex = 0;
+                    Debug.Log("Path found using secondary BFS Algorithm!");
+                }
+            }
+            else if (currentAlgorithm == ActiveAlgorithm.AStar && aStarAlgorithm != null)
+            {
+                currentPath = aStarAlgorithm.FindPath(gridManager, transform.position, target.position);
+                
+                if (currentPath != null && currentPath.Count > 0)
+                {
+                    currentPathIndex = 0;
+                    Debug.Log("Path found using primary A* Algorithm!");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Selected Search Algorithm script not found! Please attach it to an object in the scene.");
+            }
         }
 
         // 3. Move along the path
@@ -167,68 +202,6 @@ public class DroneMovement : MonoBehaviour
             currentPath = null;
             currentPathIndex = 0;
             Debug.Log("Drone reached the target!");
-        }
-    }
-
-    void FindPathBFS(Vector3 startPos, Vector3 targetPos)
-    {
-        if (gridManager == null) return;
-
-        Node startNode = gridManager.GetNodeFromWorldPoint(startPos);
-        Node targetNode = gridManager.GetNodeFromWorldPoint(targetPos);
-
-        // DEBUGGING LOGS: Tell the user exactly why the drone isn't moving
-        if (startNode == null) Debug.LogWarning("Start node is null!");
-        if (targetNode == null) Debug.LogWarning("Target node is null!");
-        if (startNode != null && !startNode.isWalkable) Debug.LogWarning("Start node (Drone position) is NOT walkable! The drone might be inside an obstacle.");
-        if (targetNode != null && !targetNode.isWalkable) Debug.LogWarning("Target node is NOT walkable! Move the Target out of the obstacles.");
-
-        if (startNode == null || targetNode == null || !startNode.isWalkable || !targetNode.isWalkable)
-        {
-            return;
-        }
-
-        Queue<Node> frontier = new Queue<Node>();
-        Dictionary<Node, Node> cameFrom = new Dictionary<Node, Node>();
-
-        frontier.Enqueue(startNode);
-        cameFrom[startNode] = null;
-
-        bool foundPath = false;
-
-        while (frontier.Count > 0)
-        {
-            Node current = frontier.Dequeue();
-
-            if (current == targetNode)
-            {
-                foundPath = true;
-                break;
-            }
-
-            foreach (Node neighbor in current.neighbors)
-            {
-                if (neighbor.isWalkable && !cameFrom.ContainsKey(neighbor))
-                {
-                    frontier.Enqueue(neighbor);
-                    cameFrom[neighbor] = current;
-                }
-            }
-        }
-
-        if (foundPath)
-        {
-            currentPath = new List<Node>();
-            Node current = targetNode;
-            
-            while (current != startNode)
-            {
-                currentPath.Add(current);
-                current = cameFrom[current];
-            }
-            // We don't add the start node to the path as we are already there
-            currentPath.Reverse(); // Reverse so it goes from start -> target
-            currentPathIndex = 0;
         }
     }
 }
