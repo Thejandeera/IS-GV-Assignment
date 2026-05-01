@@ -14,13 +14,13 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
-  m_Fog: 1
+  m_Fog: 0
   m_FogColor: {r: 0.2, g: 0.25, b: 0.3, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.015
   m_LinearFogStart: 52.9
   m_LinearFogEnd: 489.1
-  m_AmbientSkyColor: {r: 0.15, g: 0.18, b: 0.25, a: 1}
+  m_AmbientSkyColor: {r: 0.6, g: 0.65, b: 0.7, a: 1}
   m_AmbientEquatorColor: {r: 0.37962, g: 0.41625, b: 0.44289, a: 3.33}
   m_AmbientGroundColor: {r: 0.15651, g: 0.14319, b: 0.11655, a: 3.33}
   m_AmbientIntensity: 3.33
@@ -162,8 +162,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
-  m_Color: {r: 0.4, g: 0.45, b: 0.6, a: 1}
-  m_Intensity: 0.6
+  m_Color: {r: 1, g: 0.95, b: 0.83, a: 1}
+  m_Intensity: 1.2
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -172,7 +172,7 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 0.8
+    m_Strength: 0.7
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 0.2
@@ -2231,8 +2231,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4b439f90fcbee14db1029c4f9689e17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DroneMovement
-  speed: 10
+  speed: 6
   rotationSpeed: 5
+  hoverAmplitude: 0.5
+  hoverFrequency: 2
+  bankAmount: 30
+  propellerSpeed: 1500
+  propellers: []
   target: {fileID: 2106785385}
 --- !u!1001 &748322681
 PrefabInstance:
@@ -5457,15 +5462,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.4
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.4
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.4
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5473,7 +5478,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.4
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.z
