@@ -11,8 +11,8 @@ public class PlayerMove : MonoBehaviour
     public Animator animator;
 
     [Header("Model Rotation Settings")]
-    public Transform characterModel; // The visual model we want to spin
-    public float turnSpeed = 15f;    // How fast the character spins around
+    public Transform characterModel;
+    public float turnSpeed = 15f;
 
     public AudioSource footstepSound;
     public float stepInterval = 0.4f;
@@ -32,7 +32,6 @@ public class PlayerMove : MonoBehaviour
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
 
-        // Auto-assign the character model if it was left empty, using the Animator's transform
         if (characterModel == null && animator != null)
         {
             characterModel = animator.transform;
@@ -62,15 +61,23 @@ public class PlayerMove : MonoBehaviour
         float activeSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * sprintMultiplier : speed;
         move *= activeSpeed;
 
-        // --- NEW: CHARACTER VISUAL ROTATION ---
-        // We ensure we aren't rotating the main root object to avoid spinning the camera
+        // --- UPDATED: 8-WAY CHARACTER VISUAL ROTATION ---
         if (characterModel != null && characterModel != this.transform)
         {
-            // If pressing 'S' (moving backward), set target angle to 180. Otherwise, 0.
-            float targetYRotation = (moveZ < -0.1f) ? 180f : 0f;
+            float targetAngle = 0f; // Default is facing forward (0 degrees)
 
-            // Smoothly rotate the visual model to face the correct direction
-            Quaternion targetRotation = Quaternion.Euler(0f, targetYRotation, 0f);
+            // Create an input vector based on your keyboard presses
+            Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
+
+            // If the player is pressing ANY movement key...
+            if (inputDir.magnitude >= 0.1f)
+            {
+                // Calculate the exact angle (Left, Right, Backwards, or Diagonals!)
+                targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg;
+            }
+
+            // Smoothly rotate the visual model to the correct angle
+            Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
             characterModel.localRotation = Quaternion.Slerp(characterModel.localRotation, targetRotation, Time.deltaTime * turnSpeed);
         }
 
