@@ -2239,6 +2239,7 @@ MonoBehaviour:
   propellerSpeed: 1500
   propellers: []
   target: {fileID: 921749967}
+  player: {fileID: 934648514}
   currentAlgorithm: 1
   bfsAlgorithm: {fileID: 0}
   aStarAlgorithm: {fileID: 0}
@@ -2767,7 +2768,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &903952097
 MonoBehaviour:
   m_ObjectHideFlags: 0
