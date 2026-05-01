@@ -113,9 +113,9 @@ public class Student1Tools : EditorWindow
         // 1. Fog Setup
         RenderSettings.fog = false;
 
-        // 2. Ambient Lighting Setup 
-        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Skybox;
-        RenderSettings.ambientIntensity = 1.0f; // Full bounce light
+        // 2. Ambient Lighting Setup (FIXED: Changed to Flat so it stays bright in Play Mode!)
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.6f, 0.65f, 0.7f); // Soft, bright sky-blue bounce light
 
         // 3. Directional Light Setup
         Light[] allLights = FindObjectsByType<Light>(FindObjectsSortMode.None);
@@ -131,7 +131,7 @@ public class Student1Tools : EditorWindow
             }
         }
 
-        // Tell Unity to recalculate the lighting based on the new sky
+        // Tell Unity to recalculate the lighting
         DynamicGI.UpdateEnvironment();
 
         Debug.Log("<color=yellow><b>Atmosphere Reset!</b></color> Skybox returned to normal.");
