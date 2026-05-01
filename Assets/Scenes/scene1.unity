@@ -1593,7 +1593,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d607a337344e58c458caf362c2c47169, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.7287799
+      value: 31.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d607a337344e58c458caf362c2c47169, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1601,7 +1601,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d607a337344e58c458caf362c2c47169, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -98.78741
+      value: -101.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d607a337344e58c458caf362c2c47169, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2305,15 +2305,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4b439f90fcbee14db1029c4f9689e17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DroneMovement
-  speed: 6
+  speed: 8
   rotationSpeed: 5
   hoverAmplitude: 0.5
   hoverFrequency: 2
   bankAmount: 30
   propellerSpeed: 1500
   propellers: []
-  target: {fileID: 2106785385}
-  currentAlgorithm: 0
+  target: {fileID: 177165320}
+  currentAlgorithm: 1
   bfsAlgorithm: {fileID: 0}
   aStarAlgorithm: {fileID: 0}
 --- !u!82 &748253183
@@ -2841,7 +2841,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &903952097
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6466,3 +6466,4 @@ SceneRoots:
   - {fileID: 1883240945}
   - {fileID: 1684593037}
   - {fileID: 903952099}
+  - {fileID: 524952603}
