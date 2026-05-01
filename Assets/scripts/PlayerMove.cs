@@ -10,6 +10,10 @@ public class PlayerMove : MonoBehaviour
     public Transform playerCamera;
     public Animator animator;
 
+    [Header("Model Rotation Settings")]
+    public Transform characterModel;
+    public float turnSpeed = 15f;
+
     public AudioSource footstepSound;
     public float stepInterval = 0.4f;
     private float stepTimer = 0f;
@@ -27,6 +31,11 @@ public class PlayerMove : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
+
+        if (characterModel == null && animator != null)
+        {
+            characterModel = animator.transform;
+        }
     }
 
     void Update()
@@ -51,6 +60,26 @@ public class PlayerMove : MonoBehaviour
 
         float activeSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * sprintMultiplier : speed;
         move *= activeSpeed;
+
+        // --- UPDATED: 8-WAY CHARACTER VISUAL ROTATION ---
+        if (characterModel != null && characterModel != this.transform)
+        {
+            float targetAngle = 0f; // Default is facing forward (0 degrees)
+
+            // Create an input vector based on your keyboard presses
+            Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
+
+            // If the player is pressing ANY movement key...
+            if (inputDir.magnitude >= 0.1f)
+            {
+                // Calculate the exact angle (Left, Right, Backwards, or Diagonals!)
+                targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg;
+            }
+
+            // Smoothly rotate the visual model to the correct angle
+            Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
+            characterModel.localRotation = Quaternion.Slerp(characterModel.localRotation, targetRotation, Time.deltaTime * turnSpeed);
+        }
 
         if (controller.isGrounded)
         {
@@ -99,7 +128,7 @@ public class PlayerMove : MonoBehaviour
                     footstepSound.pitch = Random.Range(0.85f, 1.15f);
                     footstepSound.Play();
                 }
-                
+
                 stepTimer = Input.GetKey(KeyCode.LeftShift) ? stepInterval / sprintMultiplier : stepInterval;
             }
         }
