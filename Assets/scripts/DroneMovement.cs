@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class DroneMovement : MonoBehaviour
@@ -8,199 +9,263 @@ public class DroneMovement : MonoBehaviour
     public float rotationSpeed = 5.0f;
 
     [Header("Animation Settings (Student 4)")]
-    public float hoverAmplitude = 0.5f; // How high the drone bobs
-    public float hoverFrequency = 2.0f; // How fast the drone bobs
-    public float bankAmount = 30.0f; // Max angle the drone tilts when turning
-    public float propellerSpeed = 1500f; // Speed of propeller rotation
-    public Transform[] propellers; // Drag the propeller objects here in the Inspector
+    public float hoverAmplitude = 0.5f;
+    public float hoverFrequency = 2.0f;
+    public float bankAmount = 30.0f;
+    public float propellerSpeed = 1500f;
+    public Transform[] propellers;
 
     [Header("Pathfinding Setup")]
     public Transform target;
     private GridManager gridManager;
     private List<Node> currentPath;
     private int currentPathIndex = 0;
-    private float baseY; // Starting height for hover bobbing
-    private bool startMoving = false; // Flag to start movement after Enter key press
+    private float baseY;
 
-    public enum ActiveAlgorithm
-    {
-        BFS,
-        AStar
-    }
+    [Header("Storm Helper Settings")]
+    public Transform player;
+
+    private bool startMoving = false;
+    private bool isPrompting = false;
+    private bool hasAnswered = false;
+    private bool isVisible = false;
+
+    // --- NEW VARIABLES FOR ENTER LOGIC ---
+    private bool isWaitingForEnter = false;
+    private bool showEnterMessage = false;
+
+    public enum ActiveAlgorithm { BFS, AStar }
 
     [Header("Search Algorithms Setup")]
-    public ActiveAlgorithm currentAlgorithm = ActiveAlgorithm.AStar; // Default to A*
+    public ActiveAlgorithm currentAlgorithm = ActiveAlgorithm.AStar;
     public BFSSearchAlgorithm bfsAlgorithm;
     public AStarSearchAlgorithm aStarAlgorithm;
 
     void Start()
     {
         gridManager = FindObjectOfType<GridManager>();
-        if (gridManager == null)
-        {
-            Debug.LogError("GridManager not found in the scene!");
-        }
 
-        // Try to find the scripts automatically if not assigned
         if (bfsAlgorithm == null) bfsAlgorithm = FindObjectOfType<BFSSearchAlgorithm>();
         if (aStarAlgorithm == null) aStarAlgorithm = FindObjectOfType<AStarSearchAlgorithm>();
 
-        // Record starting height for hover bobbing
-        baseY = transform.position.y;
+        if (player == null)
+        {
+            GameObject pObj = GameObject.Find("character");
+            if (pObj != null) player = pObj.transform;
+        }
+
+        // Hide the drone at the start of the game
+        SetDroneVisible(false);
     }
 
     void Update()
     {
-        // Always spin propellers, even when waiting
-        SpinPropellers();
-
-        // Wait for the user to press Enter to start
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+        // 1. STORM DETECTION & Y/N PROMPT
+        if (!hasAnswered)
         {
-            startMoving = true;
-            Debug.Log("Enter key pressed! Initiating drone sequence...");
-        }
-
-        // Do nothing until Enter is pressed
-        if (!startMoving)
-        {
-            HoverInPlace();
-            return;
-        }
-
-        // 1. Try to find the target continuously if we don't have one
-        if (target == null)
-        {
-            GameObject targetObj = GameObject.Find("Target");
-            if (targetObj == null) targetObj = GameObject.Find("End");
-
-            if (targetObj != null)
+            if (RenderSettings.fog)
             {
-                target = targetObj.transform;
-                Debug.Log("Successfully found Target: " + target.name);
+                isPrompting = true;
+
+                if (Input.GetKeyDown(KeyCode.Y))
+                {
+                    hasAnswered = true;
+                    isPrompting = false;
+                    StartCoroutine(AppearAndStartSequence());
+                }
+                else if (Input.GetKeyDown(KeyCode.N))
+                {
+                    hasAnswered = true;
+                    isPrompting = false;
+                    Debug.Log("Navigation help declined.");
+                }
             }
             else
             {
-                HoverInPlace();
-                return; // Do nothing until we find a target
+                isPrompting = false;
             }
+            return;
         }
 
-        // 2. Continuously try to find a path if we have a target and no path yet
+        // Propellers should spin if drone is visible
+        if (isVisible) SpinPropellers();
+
+        // 2. WAIT FOR ENTER KEY
+        if (isWaitingForEnter)
+        {
+            HoverInPlace(); // Keep bobbing up and down while waiting
+
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                isWaitingForEnter = false;
+                showEnterMessage = false; // Hide message instantly if they press Enter early
+                startMoving = true;
+                Debug.Log("Drone starting navigation!");
+            }
+            return; // Block the pathfinding until Enter is pressed
+        }
+
+        // Do nothing if we haven't started moving
+        if (!startMoving) return;
+
+        // 3. TARGET ACQUISITION & PATHFINDING
+        if (target == null)
+        {
+            GameObject targetObj = GameObject.Find("Target") ?? GameObject.Find("End");
+            if (targetObj != null) target = targetObj.transform;
+            else { HoverInPlace(); return; }
+        }
+
         if (target != null && (currentPath == null || currentPath.Count == 0))
         {
             if (currentAlgorithm == ActiveAlgorithm.BFS && bfsAlgorithm != null)
             {
                 currentPath = bfsAlgorithm.FindPath(gridManager, transform.position, target.position);
-
-                if (currentPath != null && currentPath.Count > 0)
-                {
-                    currentPathIndex = 0;
-                    Debug.Log("Path found using secondary BFS Algorithm!");
-                }
+                if (currentPath != null && currentPath.Count > 0) currentPathIndex = 0;
             }
             else if (currentAlgorithm == ActiveAlgorithm.AStar && aStarAlgorithm != null)
             {
                 currentPath = aStarAlgorithm.FindPath(gridManager, transform.position, target.position);
-
-                if (currentPath != null && currentPath.Count > 0)
-                {
-                    currentPathIndex = 0;
-                    Debug.Log("Path found using primary A* Algorithm!");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Selected Search Algorithm script not found! Please attach it to an object in the scene.");
+                if (currentPath != null && currentPath.Count > 0) currentPathIndex = 0;
             }
         }
 
-        // 3. Move along the path
+        // 4. MOVE
         MoveAlongPath();
+    }
+
+    // --- PROFESSIONAL GUI DISPLAY ---
+    void OnGUI()
+    {
+        if (isPrompting || showEnterMessage)
+        {
+            float boxWidth = 450;
+            float boxHeight = 130;
+            Rect boxRect = new Rect((Screen.width - boxWidth) / 2, Screen.height / 2 - 150, boxWidth, boxHeight);
+
+            // Draw a sleek, dark semi-transparent background box
+            GUI.color = new Color(0, 0, 0, 0.85f);
+            GUI.Box(boxRect, "");
+            GUI.color = Color.white;
+
+            // Setup professional text styling
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 24,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            titleStyle.normal.textColor = new Color(1f, 0.8f, 0.2f); // Gold Title
+
+            GUIStyle subStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 16,
+                alignment = TextAnchor.MiddleCenter
+            };
+            subStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f); // Off-white Subtext
+
+            // Draw the correct text based on the state
+            if (isPrompting)
+            {
+                GUI.Label(new Rect(boxRect.x, boxRect.y + 20, boxWidth, 40), "STORM DETECTED", titleStyle);
+                GUI.Label(new Rect(boxRect.x, boxRect.y + 65, boxWidth, 40), "Navigation assistance available.\nPress [Y] to deploy Drone  |  Press [N] to dismiss", subStyle);
+            }
+            else if (showEnterMessage)
+            {
+                GUI.Label(new Rect(boxRect.x, boxRect.y + 20, boxWidth, 40), "DRONE DEPLOYED", titleStyle);
+                GUI.Label(new Rect(boxRect.x, boxRect.y + 65, boxWidth, 40), "Ready for guidance.\nPress [ENTER] when you are ready to follow.", subStyle);
+            }
+        }
+    }
+
+    // --- SEQUENCE LOGIC ---
+    IEnumerator AppearAndStartSequence()
+    {
+        // 1. Teleport directly above the player
+        if (player != null)
+        {
+            transform.position = player.position + new Vector3(0, 4.0f, 0);
+            transform.rotation = Quaternion.Euler(0, player.eulerAngles.y, 0);
+        }
+
+        baseY = transform.position.y;
+
+        // 2. Make visible and turn on audio (Buzzing starts instantly!)
+        SetDroneVisible(true);
+
+        // 3. Trigger the "Press Enter" message
+        isWaitingForEnter = true;
+        showEnterMessage = true;
+
+        // 4. Auto-hide the message after 4 seconds so it isn't annoying
+        yield return new WaitForSeconds(4.0f);
+        showEnterMessage = false;
+
+        // NOTE: The drone will still wait for you to press Enter, even after the message fades away!
+    }
+
+    // --- HELPER FUNCTIONS ---
+    void SetDroneVisible(bool state)
+    {
+        isVisible = state;
+
+        MeshRenderer[] meshes = GetComponentsInChildren<MeshRenderer>();
+        foreach (MeshRenderer m in meshes) m.enabled = state;
+
+        AudioSource audio = GetComponent<AudioSource>();
+        if (audio != null)
+        {
+            if (state) audio.Play();
+            else audio.Stop();
+        }
     }
 
     void HoverInPlace()
     {
-        // Just bob up and down when waiting
         float bobOffset = Mathf.Sin(Time.time * hoverFrequency) * hoverAmplitude;
         transform.position = new Vector3(transform.position.x, baseY + bobOffset, transform.position.z);
 
-        // Level out the rotation
         Quaternion flatRotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
         transform.rotation = Quaternion.Slerp(transform.rotation, flatRotation, Time.deltaTime * rotationSpeed);
     }
 
     void SpinPropellers()
     {
-        if (propellers != null && propellers.Length > 0)
-        {
+        if (propellers != null)
             foreach (Transform prop in propellers)
-            {
-                if (prop != null)
-                {
-                    // Rotate the propeller around its local Y axis
-                    prop.Rotate(Vector3.up * propellerSpeed * Time.deltaTime, Space.Self);
-                }
-            }
-        }
+                if (prop != null) prop.Rotate(Vector3.up * propellerSpeed * Time.deltaTime, Space.Self);
     }
 
     void MoveAlongPath()
     {
-        if (currentPath == null || currentPath.Count == 0)
-        {
-            HoverInPlace();
-            return;
-        }
+        if (currentPath == null || currentPath.Count == 0) { HoverInPlace(); return; }
 
         if (currentPathIndex < currentPath.Count)
         {
             Vector3 targetPosition = currentPath[currentPathIndex].worldPosition;
-
-            // XZ movement logic
             Vector3 currentPosXZ = new Vector3(transform.position.x, baseY, transform.position.z);
             Vector3 targetPosXZ = new Vector3(targetPosition.x, baseY, targetPosition.z);
 
-            // Move towards the target node
             Vector3 newPosXZ = Vector3.MoveTowards(currentPosXZ, targetPosXZ, speed * Time.deltaTime);
 
-            // Apply Hover Bobbing to Y axis
             float bobOffset = Mathf.Sin(Time.time * hoverFrequency) * hoverAmplitude;
             transform.position = new Vector3(newPosXZ.x, baseY + bobOffset, newPosXZ.z);
 
-            // Rotate and Bank towards the target node
             Vector3 direction = (targetPosXZ - currentPosXZ).normalized;
             if (direction != Vector3.zero)
             {
-                // Calculate the flat look rotation
                 Quaternion flatLookRotation = Quaternion.LookRotation(direction);
-
-                // Calculate Banking: Get the angle between our current forward and the target direction
                 float turnAngle = Vector3.SignedAngle(transform.forward, direction, Vector3.up);
-
-                // We want to tilt into the turn (like an airplane banking).
-                // Clamp it so we don't barrel roll.
                 float targetBankAngle = Mathf.Clamp(-turnAngle, -bankAmount, bankAmount);
+                Quaternion finalTargetRotation = flatLookRotation * Quaternion.Euler(0, 0, targetBankAngle);
 
-                // Apply the bank angle to the Z axis
-                Quaternion bankRotation = Quaternion.Euler(0, 0, targetBankAngle);
-
-                // Combine the look rotation with the bank rotation
-                Quaternion finalTargetRotation = flatLookRotation * bankRotation;
-
-                // Smoothly interpolate to the final rotation
                 transform.rotation = Quaternion.Slerp(transform.rotation, finalTargetRotation, Time.deltaTime * rotationSpeed);
             }
 
-            // Check if we are close enough to the node to move to the next one
-            if (Vector3.Distance(currentPosXZ, targetPosXZ) < 0.1f)
-            {
-                currentPathIndex++;
-            }
+            if (Vector3.Distance(currentPosXZ, targetPosXZ) < 0.1f) currentPathIndex++;
         }
         else
         {
-            // Reached the end of the path
             currentPath = null;
             currentPathIndex = 0;
             Debug.Log("Drone reached the target!");
