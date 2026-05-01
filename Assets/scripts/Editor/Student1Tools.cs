@@ -96,6 +96,10 @@ public class Student1Tools : EditorWindow
         // Tell Unity to recalculate the lighting based on the new sky
         DynamicGI.UpdateEnvironment();
 
+        // Turn ON the Lightning System
+        GameObject lightning = GameObject.Find("LightningSystem");
+        if (lightning != null) lightning.SetActive(true);
+
         Debug.Log("<color=cyan><b>Storm Atmosphere Applied!</b></color> Dark and moody lighting updated.");
     }
 
@@ -133,6 +137,10 @@ public class Student1Tools : EditorWindow
 
         // Tell Unity to recalculate the lighting
         DynamicGI.UpdateEnvironment();
+
+        // Turn OFF the Lightning System
+        GameObject lightning = GameObject.Find("LightningSystem");
+        if (lightning != null) lightning.SetActive(false);
 
         Debug.Log("<color=yellow><b>Atmosphere Reset!</b></color> Skybox returned to normal.");
     }
