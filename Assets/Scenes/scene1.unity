@@ -3001,6 +3001,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d3c3f33abaa752041b081f65af1d256f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1221998489}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d3c3f33abaa752041b081f65af1d256f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1221998490}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d3c3f33abaa752041b081f65af1d256f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1221998491}
     - targetCorrespondingSourceObject: {fileID: 8039765736737727803, guid: d3c3f33abaa752041b081f65af1d256f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1999411366}
@@ -4609,6 +4615,39 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!65 &1221998490
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221998488}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.5107756, y: 1.9785144, z: 3.0023346}
+  m_Center: {x: 1.2553844, y: 0.48925722, z: -1.0011879}
+--- !u!114 &1221998491
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221998488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1bc7b55638ba3945a4b0eb249338559, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CaveEntrance
 --- !u!1001 &1247779161
 PrefabInstance:
   m_ObjectHideFlags: 0
