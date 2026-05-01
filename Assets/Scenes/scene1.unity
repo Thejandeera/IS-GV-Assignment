@@ -322,75 +322,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c7247613d830e35428c23251b7df0223, type: 3}
---- !u!1001 &120410921
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 7.3
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 76.75756
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
-      propertyPath: m_Name
-      value: cave_color-model
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 10bfe46deb87b7c4bab1e38840b8d6df, type: 3}
 --- !u!4 &131870857 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 317660210334050484, guid: c7247613d830e35428c23251b7df0223, type: 3}
@@ -2308,6 +2239,9 @@ MonoBehaviour:
   propellerSpeed: 1500
   propellers: []
   target: {fileID: 2106785385}
+  currentAlgorithm: 0
+  bfsAlgorithm: {fileID: 0}
+  aStarAlgorithm: {fileID: 0}
 --- !u!82 &748253183
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2405,6 +2339,31 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &748253186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748253177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b59c412a3b5f66459b0dbeef095808d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BFSSearchAlgorithm
+  showDebug: 1
+--- !u!114 &748253187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748253177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35d60ae0c7184c144a99b6383f765987, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AStarSearchAlgorithm
 --- !u!1001 &748322681
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5784,7 +5743,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.4582398
+      value: 0.4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5792,7 +5751,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 86.39021
+      value: 93.5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       propertyPath: m_LocalRotation.w
@@ -5837,6 +5796,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 748253183}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 748253187}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 748253186}
   m_SourcePrefab: {fileID: 100100000, guid: d02223e98af8ad7469f09eac2942bfd4, type: 3}
 --- !u!1001 &2137161770
 PrefabInstance:

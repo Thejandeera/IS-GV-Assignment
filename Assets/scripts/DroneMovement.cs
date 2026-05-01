@@ -13,12 +13,14 @@ public class DroneMovement : MonoBehaviour
     public float bankAmount = 30.0f; // Max angle the drone tilts when turning
     public float propellerSpeed = 1500f; // Speed of propeller rotation
     public Transform[] propellers; // Drag the propeller objects here in the Inspector
-    
+
     [Header("Pathfinding Setup")]
     public Transform target;
     private GridManager gridManager;
     private List<Node> currentPath;
     private int currentPathIndex = 0;
+    private float baseY; // Starting height for hover bobbing
+    private bool startMoving = false; // Flag to start movement after Enter key press
 
     public enum ActiveAlgorithm
     {
@@ -42,9 +44,9 @@ public class DroneMovement : MonoBehaviour
         // Try to find the scripts automatically if not assigned
         if (bfsAlgorithm == null) bfsAlgorithm = FindObjectOfType<BFSSearchAlgorithm>();
         if (aStarAlgorithm == null) aStarAlgorithm = FindObjectOfType<AStarSearchAlgorithm>();
-        
+
         // Record starting height for hover bobbing
-        baseY = transform.position.y; 
+        baseY = transform.position.y;
     }
 
     void Update()
@@ -60,7 +62,7 @@ public class DroneMovement : MonoBehaviour
         }
 
         // Do nothing until Enter is pressed
-        if (!startMoving) 
+        if (!startMoving)
         {
             HoverInPlace();
             return;
@@ -71,13 +73,13 @@ public class DroneMovement : MonoBehaviour
         {
             GameObject targetObj = GameObject.Find("Target");
             if (targetObj == null) targetObj = GameObject.Find("End");
-            
-            if (targetObj != null) 
+
+            if (targetObj != null)
             {
                 target = targetObj.transform;
                 Debug.Log("Successfully found Target: " + target.name);
             }
-            else 
+            else
             {
                 HoverInPlace();
                 return; // Do nothing until we find a target
@@ -90,7 +92,7 @@ public class DroneMovement : MonoBehaviour
             if (currentAlgorithm == ActiveAlgorithm.BFS && bfsAlgorithm != null)
             {
                 currentPath = bfsAlgorithm.FindPath(gridManager, transform.position, target.position);
-                
+
                 if (currentPath != null && currentPath.Count > 0)
                 {
                     currentPathIndex = 0;
@@ -100,7 +102,7 @@ public class DroneMovement : MonoBehaviour
             else if (currentAlgorithm == ActiveAlgorithm.AStar && aStarAlgorithm != null)
             {
                 currentPath = aStarAlgorithm.FindPath(gridManager, transform.position, target.position);
-                
+
                 if (currentPath != null && currentPath.Count > 0)
                 {
                     currentPathIndex = 0;
@@ -122,7 +124,7 @@ public class DroneMovement : MonoBehaviour
         // Just bob up and down when waiting
         float bobOffset = Mathf.Sin(Time.time * hoverFrequency) * hoverAmplitude;
         transform.position = new Vector3(transform.position.x, baseY + bobOffset, transform.position.z);
-        
+
         // Level out the rotation
         Quaternion flatRotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
         transform.rotation = Quaternion.Slerp(transform.rotation, flatRotation, Time.deltaTime * rotationSpeed);
@@ -145,7 +147,7 @@ public class DroneMovement : MonoBehaviour
 
     void MoveAlongPath()
     {
-        if (currentPath == null || currentPath.Count == 0) 
+        if (currentPath == null || currentPath.Count == 0)
         {
             HoverInPlace();
             return;
@@ -154,7 +156,7 @@ public class DroneMovement : MonoBehaviour
         if (currentPathIndex < currentPath.Count)
         {
             Vector3 targetPosition = currentPath[currentPathIndex].worldPosition;
-            
+
             // XZ movement logic
             Vector3 currentPosXZ = new Vector3(transform.position.x, baseY, transform.position.z);
             Vector3 targetPosXZ = new Vector3(targetPosition.x, baseY, targetPosition.z);
@@ -172,17 +174,17 @@ public class DroneMovement : MonoBehaviour
             {
                 // Calculate the flat look rotation
                 Quaternion flatLookRotation = Quaternion.LookRotation(direction);
-                
+
                 // Calculate Banking: Get the angle between our current forward and the target direction
                 float turnAngle = Vector3.SignedAngle(transform.forward, direction, Vector3.up);
-                
+
                 // We want to tilt into the turn (like an airplane banking).
                 // Clamp it so we don't barrel roll.
                 float targetBankAngle = Mathf.Clamp(-turnAngle, -bankAmount, bankAmount);
-                
+
                 // Apply the bank angle to the Z axis
                 Quaternion bankRotation = Quaternion.Euler(0, 0, targetBankAngle);
-                
+
                 // Combine the look rotation with the bank rotation
                 Quaternion finalTargetRotation = flatLookRotation * bankRotation;
 
