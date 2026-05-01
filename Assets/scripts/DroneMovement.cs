@@ -23,18 +23,18 @@ public class DroneMovement : MonoBehaviour
     private float baseY;
 
     [Header("Storm Helper Settings")]
-    public Transform player; // Drag your "character" here in the Inspector!
+    public Transform player;
 
     private bool startMoving = false;
     private bool isPrompting = false;
     private bool hasAnswered = false;
     private bool isVisible = false;
 
-    public enum ActiveAlgorithm
-    {
-        BFS,
-        AStar
-    }
+    // --- NEW VARIABLES FOR ENTER LOGIC ---
+    private bool isWaitingForEnter = false;
+    private bool showEnterMessage = false;
+
+    public enum ActiveAlgorithm { BFS, AStar }
 
     [Header("Search Algorithms Setup")]
     public ActiveAlgorithm currentAlgorithm = ActiveAlgorithm.AStar;
@@ -48,7 +48,6 @@ public class DroneMovement : MonoBehaviour
         if (bfsAlgorithm == null) bfsAlgorithm = FindObjectOfType<BFSSearchAlgorithm>();
         if (aStarAlgorithm == null) aStarAlgorithm = FindObjectOfType<AStarSearchAlgorithm>();
 
-        // Try to automatically find the player if it isn't assigned
         if (player == null)
         {
             GameObject pObj = GameObject.Find("character");
@@ -61,15 +60,13 @@ public class DroneMovement : MonoBehaviour
 
     void Update()
     {
-        // 1. STORM DETECTION & PROMPTING
+        // 1. STORM DETECTION & Y/N PROMPT
         if (!hasAnswered)
         {
-            // If the fog is turned on (which happens in your MakeStormy tool), trigger the prompt!
             if (RenderSettings.fog)
             {
                 isPrompting = true;
 
-                // Listen for player input
                 if (Input.GetKeyDown(KeyCode.Y))
                 {
                     hasAnswered = true;
@@ -85,35 +82,40 @@ public class DroneMovement : MonoBehaviour
             }
             else
             {
-                isPrompting = false; // Turn off prompt if they switch back to Normal sunny weather
+                isPrompting = false;
             }
-
-            return; // Don't process any movement while waiting for the prompt
-        }
-
-        // 2. MOVEMENT LOGIC (Only runs after 'Y' is pressed and wait is over)
-        if (isVisible)
-        {
-            SpinPropellers();
-        }
-
-        if (!startMoving)
-        {
-            if (isVisible) HoverInPlace();
             return;
         }
 
-        // Try to find the target continuously if we don't have one
+        // Propellers should spin if drone is visible
+        if (isVisible) SpinPropellers();
+
+        // 2. WAIT FOR ENTER KEY
+        if (isWaitingForEnter)
+        {
+            HoverInPlace(); // Keep bobbing up and down while waiting
+
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                isWaitingForEnter = false;
+                showEnterMessage = false; // Hide message instantly if they press Enter early
+                startMoving = true;
+                Debug.Log("Drone starting navigation!");
+            }
+            return; // Block the pathfinding until Enter is pressed
+        }
+
+        // Do nothing if we haven't started moving
+        if (!startMoving) return;
+
+        // 3. TARGET ACQUISITION & PATHFINDING
         if (target == null)
         {
-            GameObject targetObj = GameObject.Find("Target");
-            if (targetObj == null) targetObj = GameObject.Find("End");
-
+            GameObject targetObj = GameObject.Find("Target") ?? GameObject.Find("End");
             if (targetObj != null) target = targetObj.transform;
             else { HoverInPlace(); return; }
         }
 
-        // Calculate path
         if (target != null && (currentPath == null || currentPath.Count == 0))
         {
             if (currentAlgorithm == ActiveAlgorithm.BFS && bfsAlgorithm != null)
@@ -128,32 +130,51 @@ public class DroneMovement : MonoBehaviour
             }
         }
 
-        // Move the drone
+        // 4. MOVE
         MoveAlongPath();
     }
 
-    // --- GUI DISPLAY ---
+    // --- PROFESSIONAL GUI DISPLAY ---
     void OnGUI()
     {
-        if (isPrompting)
+        if (isPrompting || showEnterMessage)
         {
-            GUIStyle style = new GUIStyle();
-            style.fontSize = 35;
-            style.normal.textColor = Color.yellow;
-            style.fontStyle = FontStyle.Bold;
-            style.alignment = TextAnchor.MiddleCenter;
+            float boxWidth = 450;
+            float boxHeight = 130;
+            Rect boxRect = new Rect((Screen.width - boxWidth) / 2, Screen.height / 2 - 150, boxWidth, boxHeight);
 
-            // Draw a simple shadow for readability
-            GUIStyle shadowStyle = new GUIStyle(style);
-            shadowStyle.normal.textColor = Color.black;
+            // Draw a sleek, dark semi-transparent background box
+            GUI.color = new Color(0, 0, 0, 0.85f);
+            GUI.Box(boxRect, "");
+            GUI.color = Color.white;
 
-            string message = "STORM DETECTED!\nDo you need navigation help?\nPress [Y] for Yes or [N] for No";
+            // Setup professional text styling
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 24,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            titleStyle.normal.textColor = new Color(1f, 0.8f, 0.2f); // Gold Title
 
-            Rect rect = new Rect(0, Screen.height / 2 - 100, Screen.width, 200);
-            Rect shadowRect = new Rect(2, Screen.height / 2 - 98, Screen.width, 200);
+            GUIStyle subStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 16,
+                alignment = TextAnchor.MiddleCenter
+            };
+            subStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f); // Off-white Subtext
 
-            GUI.Label(shadowRect, message, shadowStyle);
-            GUI.Label(rect, message, style);
+            // Draw the correct text based on the state
+            if (isPrompting)
+            {
+                GUI.Label(new Rect(boxRect.x, boxRect.y + 20, boxWidth, 40), "STORM DETECTED", titleStyle);
+                GUI.Label(new Rect(boxRect.x, boxRect.y + 65, boxWidth, 40), "Navigation assistance available.\nPress [Y] to deploy Drone  |  Press [N] to dismiss", subStyle);
+            }
+            else if (showEnterMessage)
+            {
+                GUI.Label(new Rect(boxRect.x, boxRect.y + 20, boxWidth, 40), "DRONE DEPLOYED", titleStyle);
+                GUI.Label(new Rect(boxRect.x, boxRect.y + 65, boxWidth, 40), "Ready for guidance.\nPress [ENTER] when you are ready to follow.", subStyle);
+            }
         }
     }
 
@@ -164,27 +185,23 @@ public class DroneMovement : MonoBehaviour
         if (player != null)
         {
             transform.position = player.position + new Vector3(0, 4.0f, 0);
-
-            // Level out the rotation to face the same way as the player
             transform.rotation = Quaternion.Euler(0, player.eulerAngles.y, 0);
         }
-        else
-        {
-            Debug.LogWarning("Player not found! Drone is spawning at its default location.");
-        }
 
-        // Record the new height for smooth hover bobbing
         baseY = transform.position.y;
 
-        // 2. Make visible and turn on audio
+        // 2. Make visible and turn on audio (Buzzing starts instantly!)
         SetDroneVisible(true);
 
-        // 3. Wait exactly 2 seconds
-        yield return new WaitForSeconds(2.0f);
+        // 3. Trigger the "Press Enter" message
+        isWaitingForEnter = true;
+        showEnterMessage = true;
 
-        // 4. Take off!
-        startMoving = true;
-        Debug.Log("Drone starting navigation!");
+        // 4. Auto-hide the message after 4 seconds so it isn't annoying
+        yield return new WaitForSeconds(4.0f);
+        showEnterMessage = false;
+
+        // NOTE: The drone will still wait for you to press Enter, even after the message fades away!
     }
 
     // --- HELPER FUNCTIONS ---
@@ -192,14 +209,9 @@ public class DroneMovement : MonoBehaviour
     {
         isVisible = state;
 
-        // Turn meshes on or off
         MeshRenderer[] meshes = GetComponentsInChildren<MeshRenderer>();
-        foreach (MeshRenderer m in meshes)
-        {
-            m.enabled = state;
-        }
+        foreach (MeshRenderer m in meshes) m.enabled = state;
 
-        // Turn buzzing audio on or off
         AudioSource audio = GetComponent<AudioSource>();
         if (audio != null)
         {
@@ -219,27 +231,18 @@ public class DroneMovement : MonoBehaviour
 
     void SpinPropellers()
     {
-        if (propellers != null && propellers.Length > 0)
-        {
+        if (propellers != null)
             foreach (Transform prop in propellers)
-            {
                 if (prop != null) prop.Rotate(Vector3.up * propellerSpeed * Time.deltaTime, Space.Self);
-            }
-        }
     }
 
     void MoveAlongPath()
     {
-        if (currentPath == null || currentPath.Count == 0)
-        {
-            HoverInPlace();
-            return;
-        }
+        if (currentPath == null || currentPath.Count == 0) { HoverInPlace(); return; }
 
         if (currentPathIndex < currentPath.Count)
         {
             Vector3 targetPosition = currentPath[currentPathIndex].worldPosition;
-
             Vector3 currentPosXZ = new Vector3(transform.position.x, baseY, transform.position.z);
             Vector3 targetPosXZ = new Vector3(targetPosition.x, baseY, targetPosition.z);
 
@@ -254,16 +257,12 @@ public class DroneMovement : MonoBehaviour
                 Quaternion flatLookRotation = Quaternion.LookRotation(direction);
                 float turnAngle = Vector3.SignedAngle(transform.forward, direction, Vector3.up);
                 float targetBankAngle = Mathf.Clamp(-turnAngle, -bankAmount, bankAmount);
-                Quaternion bankRotation = Quaternion.Euler(0, 0, targetBankAngle);
-                Quaternion finalTargetRotation = flatLookRotation * bankRotation;
+                Quaternion finalTargetRotation = flatLookRotation * Quaternion.Euler(0, 0, targetBankAngle);
 
                 transform.rotation = Quaternion.Slerp(transform.rotation, finalTargetRotation, Time.deltaTime * rotationSpeed);
             }
 
-            if (Vector3.Distance(currentPosXZ, targetPosXZ) < 0.1f)
-            {
-                currentPathIndex++;
-            }
+            if (Vector3.Distance(currentPosXZ, targetPosXZ) < 0.1f) currentPathIndex++;
         }
         else
         {
