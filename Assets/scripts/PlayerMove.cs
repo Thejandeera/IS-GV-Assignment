@@ -10,6 +10,10 @@ public class PlayerMove : MonoBehaviour
     public Transform playerCamera;
     public Animator animator;
 
+    [Header("Model Rotation Settings")]
+    public Transform characterModel;
+    public float turnSpeed = 15f;
+
     public AudioSource footstepSound;
     public float stepInterval = 0.4f;
     private float stepTimer = 0f;
@@ -44,8 +48,17 @@ public class PlayerMove : MonoBehaviour
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
 
+        // --- MERGED: Keep Friend's UI setup ---
         if (pushUI != null)
+        {
             pushUI.SetActive(false);
+        }
+
+        // --- MERGED: Keep Your Auto-assign Model setup ---
+        if (characterModel == null && animator != null)
+        {
+            characterModel = animator.transform;
+        }
     }
 
     void Update()
@@ -103,17 +116,35 @@ public class PlayerMove : MonoBehaviour
 
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
 
-        float activeSpeed = Input.GetKey(KeyCode.LeftShift)
-            ? speed * sprintMultiplier
-            : speed;
-
+        float activeSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * sprintMultiplier : speed;
         move *= activeSpeed;
+
+        // --- MERGED: Your 8-Way Rotation Feature ---
+        if (characterModel != null && characterModel != this.transform)
+        {
+            float targetAngle = 0f; // Default is facing forward (0 degrees)
+
+            // Create an input vector based on your keyboard presses
+            Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
+
+            // If the player is pressing ANY movement key...
+            if (inputDir.magnitude >= 0.1f)
+            {
+                // Calculate the exact angle (Left, Right, Backwards, Diagonals)
+                targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg;
+            }
+
+            // Smoothly rotate the visual model to the correct angle
+            Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
+            characterModel.localRotation = Quaternion.Slerp(characterModel.localRotation, targetRotation, Time.deltaTime * turnSpeed);
+        }
 
         if (controller.isGrounded)
         {
             if (verticalVelocity < 0)
                 verticalVelocity = -2f;
 
+            // Cannot jump while pushing
             if (Input.GetButtonDown("Jump") && !isPushing)
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
@@ -139,10 +170,11 @@ public class PlayerMove : MonoBehaviour
         HandleFootsteps(currentSpeed);
     }
 
+    // --- MERGED: Friend's new Push Functions ---
+
     void CheckForPushUI()
     {
-        if (pushUI == null)
-            return;
+        if (pushUI == null) return;
 
         RaycastHit hit;
 
@@ -210,9 +242,7 @@ public class PlayerMove : MonoBehaviour
                     footstepSound.Play();
                 }
 
-                stepTimer = Input.GetKey(KeyCode.LeftShift)
-                    ? stepInterval / sprintMultiplier
-                    : stepInterval;
+                stepTimer = Input.GetKey(KeyCode.LeftShift) ? stepInterval / sprintMultiplier : stepInterval;
             }
         }
         else
