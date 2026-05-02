@@ -23,6 +23,16 @@ public class PlayerMove : MonoBehaviour
     private float verticalVelocity = 0f;
     public float gravity = -9.81f;
 
+    // --- Push Logic Settings ---
+    private bool isPushing = false;
+    [Header("Push Settings")]
+    public float pushForce = 50f;      // තල්ලු කරන බලය
+    public float pushDistance = 1.5f;  // ගහට කොපමණ ළං විය යුතුද
+    public float pushingMass = 50f;    // තල්ලු කරන වෙලාවට ගහේ බර (Mass)
+    public float originalMass = 10000f; // ගහේ සාමාන්‍ය බර
+
+    private Rigidbody currentTreeRb;   // දැනට තල්ලු කරන ගහ මතක තබා ගැනීමට
+
     void Start()
     {
         controller = GetComponent<CharacterController>();
@@ -31,6 +41,7 @@ public class PlayerMove : MonoBehaviour
 
     void Update()
     {
+        // 1. Mouse Look (පරණ විදිහටමයි)
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime * 100f;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime * 100f;
 
@@ -44,8 +55,27 @@ public class PlayerMove : MonoBehaviour
 
         transform.Rotate(Vector3.up * mouseX);
 
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        // --- 2. Push Logic (F Key එක පාලනය කිරීම) ---
+        if (Input.GetKey(KeyCode.F))
+        {
+            isPushing = true;
+            if (animator != null) animator.SetBool("isPushing", true);
+            
+            // ගහ හඳුනාගෙන එහි බර අඩු කර තල්ලු කරන Function එක
+            HandleTreePushing();
+        }
+        else
+        {
+            // F අතෑරපු සැනින් ගහේ බර ආපහු 10,000 කරනවා
+            ResetTreeMass();
+
+            isPushing = false;
+            if (animator != null) animator.SetBool("isPushing", false);
+        }
+
+        // 3. Movement Logic
+        float moveX = isPushing ? 0 : Input.GetAxis("Horizontal");
+        float moveZ = isPushing ? 0 : Input.GetAxis("Vertical");
 
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
 
@@ -59,7 +89,7 @@ public class PlayerMove : MonoBehaviour
                 verticalVelocity = -2f;
             }
 
-            if (Input.GetButtonDown("Jump"))
+            if (Input.GetButtonDown("Jump") && !isPushing)
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
 
@@ -76,7 +106,6 @@ public class PlayerMove : MonoBehaviour
         }
 
         verticalVelocity += gravity * Time.deltaTime;
-
         move.y = verticalVelocity;
 
         controller.Move(move * Time.deltaTime);
@@ -88,6 +117,7 @@ public class PlayerMove : MonoBehaviour
             animator.SetFloat("Speed", currentSpeed);
         }
 
+        // Footsteps (පරණ විදිහටමයි)
         if (currentSpeed > 0.1f && controller.isGrounded)
         {
             stepTimer -= Time.deltaTime;
@@ -110,6 +140,40 @@ public class PlayerMove : MonoBehaviour
             {
                 footstepSound.Stop();
             }
+        }
+    }
+
+    // --- ගහ තල්ලු කිරීම සහ Mass එක අඩු කිරීමේ Function එක ---
+    void HandleTreePushing()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out hit, pushDistance))
+        {
+            if (hit.collider.CompareTag("Pushable"))
+            {
+                Rigidbody treeRb = hit.collider.GetComponent<Rigidbody>();
+                if (treeRb != null)
+                {
+                    currentTreeRb = treeRb;
+                    
+                    // තල්ලු කරන වෙලාවට Mass එක 50 (pushingMass) කරනවා
+                    currentTreeRb.mass = pushingMass;
+
+                    Vector3 pushDirection = transform.forward;
+                    pushDirection.y = 0; // අහසට විසිවීම වැළැක්වීමට
+                    currentTreeRb.AddForce(pushDirection * pushForce, ForceMode.Acceleration);
+                }
+            }
+        }
+    }
+
+    // --- බර ආපහු 10,000 කිරීමේ Function එක ---
+    void ResetTreeMass()
+    {
+        if (currentTreeRb != null)
+        {
+            currentTreeRb.mass = originalMass;
+            currentTreeRb = null;
         }
     }
 }
