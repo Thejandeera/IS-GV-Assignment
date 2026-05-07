@@ -4104,6 +4104,8 @@ MonoBehaviour:
   mouseSensitivity: 2
   playerCamera: {fileID: 1032320698}
   animator: {fileID: 934110601}
+  characterModel: {fileID: 0}
+  turnSpeed: 15
   footstepSound: {fileID: 934648515}
   stepInterval: 0.4
   jumpSound: {fileID: 934648516}
@@ -9061,7 +9063,6 @@ GameObject:
   - component: {fileID: 934648511}
   - component: {fileID: 934648515}
   - component: {fileID: 934648516}
-  - component: {fileID: 919132148881467373}
   m_Layer: 0
   m_Name: character
   m_TagString: Untagged
@@ -9069,28 +9070,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!95 &919132148881467373
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 919132148881467372}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 7e9b7901c47a0d040a14dbbdabfbf0a5, type: 3}
-  m_Controller: {fileID: 9100000, guid: 3271846527e3efa4faf7f1c1da4fe298, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 1
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &971557454960675275
 GameObject:
   m_ObjectHideFlags: 0
