@@ -10,7 +10,6 @@ public class PlayerMove : MonoBehaviour
     public Transform playerCamera;
     public Animator animator;
 
-    // --- පළමු කේතයෙන් ගත් මොඩල් එක හැරවීමේ Settings ---
     [Header("Model Rotation Settings")]
     public Transform characterModel;
     public float turnSpeed = 15f;
@@ -60,7 +59,7 @@ public class PlayerMove : MonoBehaviour
 
     void Update()
     {
-        // 1. Mouse Look Logic
+        // 1. Mouse Look
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime * 100f;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime * 100f;
 
@@ -91,7 +90,14 @@ public class PlayerMove : MonoBehaviour
         }
 
         // 3. Push Sound
-        HandlePushSound();
+        if (isPushing && currentTreeRb != null)
+        {
+            if (pushSoundSource != null && !pushSoundSource.isPlaying) pushSoundSource.Play();
+        }
+        else
+        {
+            if (pushSoundSource != null && pushSoundSource.isPlaying) pushSoundSource.Stop();
+        }
 
         // 4. Movement Logic
         float moveX = isPushing ? 0 : Input.GetAxis("Horizontal");
@@ -101,22 +107,24 @@ public class PlayerMove : MonoBehaviour
         float activeSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * sprintMultiplier : speed;
         move *= activeSpeed;
 
-        // --- UPDATED: 8-WAY CHARACTER VISUAL ROTATION (මෙන්න ඔයාට අවශ්‍ය වුණු කොටස) ---
-        // තල්ලු කරමින් සිටින විට මෙය ක්‍රියාත්මක නොවේ (ප්ලේයර් ඉදිරියට පමණක් මුහුණ ලා සිටිය යුතු බැවිනි)
+        // --- UPDATED: 8-WAY ROTATION WITH AUTO-FORWARD RESET ---
         if (characterModel != null && characterModel != this.transform && !isPushing)
         {
-            float targetAngle = 0f;
+            float targetAngle = 0f; // මෙතැනින් තමයි Auto Forward වෙන්නේ (Default 0)
             Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
 
             if (inputDir.magnitude >= 0.1f)
             {
+                // WASD ඔබන විට ඒ දිශාවට හැරේ
                 targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg;
-                Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
-                characterModel.localRotation = Quaternion.Slerp(characterModel.localRotation, targetRotation, Time.deltaTime * turnSpeed);
             }
+            // WASD අතහැරිය විට targetAngle එක 0 වන නිසා මොඩල් එක ඉදිරියට හැරේ
+
+            Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
+            characterModel.localRotation = Quaternion.Slerp(characterModel.localRotation, targetRotation, Time.deltaTime * turnSpeed);
         }
 
-        // 5. Physics & Jump
+        // 5. Jump & Physics
         if (controller.isGrounded)
         {
             if (verticalVelocity < 0) verticalVelocity = -2f;
@@ -139,38 +147,20 @@ public class PlayerMove : MonoBehaviour
         HandleFootsteps(currentSpeed);
     }
 
-    void HandlePushSound()
-    {
-        if (isPushing && currentTreeRb != null)
-        {
-            if (pushSoundSource != null && !pushSoundSource.isPlaying) pushSoundSource.Play();
-        }
-        else
-        {
-            if (pushSoundSource != null && pushSoundSource.isPlaying) pushSoundSource.Stop();
-        }
-    }
-
+    // UI පෙන්වන කොටස
     void CheckForPushUI()
     {
         if (pushUI == null) return;
         RaycastHit hit;
-        // Third Person කැමරාවට අනුව Raycast එක ප්ලේයර්ගේ ඇඟෙන් ඉදිරියට විදියි
         if (Physics.Raycast(transform.position + Vector3.up, transform.forward, out hit, pushDistance))
         {
             if (hit.collider.CompareTag("Pushable"))
             {
                 pushUI.SetActive(!isPushing);
             }
-            else
-            {
-                pushUI.SetActive(false);
-            }
+            else { pushUI.SetActive(false); }
         }
-        else
-        {
-            pushUI.SetActive(false);
-        }
+        else { pushUI.SetActive(false); }
     }
 
     void HandleTreePushing()
@@ -195,11 +185,7 @@ public class PlayerMove : MonoBehaviour
 
     void ResetTreeMass()
     {
-        if (currentTreeRb != null)
-        {
-            currentTreeRb.mass = originalMass;
-            currentTreeRb = null;
-        }
+        if (currentTreeRb != null) { currentTreeRb.mass = originalMass; currentTreeRb = null; }
     }
 
     void HandleFootsteps(float currentSpeed)
@@ -209,11 +195,7 @@ public class PlayerMove : MonoBehaviour
             stepTimer -= Time.deltaTime;
             if (stepTimer <= 0f)
             {
-                if (footstepSound != null)
-                {
-                    footstepSound.pitch = Random.Range(0.85f, 1.15f);
-                    footstepSound.Play();
-                }
+                if (footstepSound != null) { footstepSound.pitch = Random.Range(0.85f, 1.15f); footstepSound.Play(); }
                 stepTimer = Input.GetKey(KeyCode.LeftShift) ? stepInterval / sprintMultiplier : stepInterval;
             }
         }
@@ -224,4 +206,3 @@ public class PlayerMove : MonoBehaviour
         }
     }
 }
-
