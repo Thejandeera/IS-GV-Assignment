@@ -1,144 +1,66 @@
 using UnityEngine;
+using System.Collections;
 
-[RequireComponent(typeof(CharacterController))]
-public class PlayerMove : MonoBehaviour
+public class LightningController : MonoBehaviour
 {
-    public float speed = 10f;
-    public float sprintMultiplier = 1.8f;
-    public float mouseSensitivity = 2f;
+    [Header("Lightning Settings")]
+    public Light lightningLight;           
+    
+    // FIXED: Lowered these numbers so lightning strikes much more often! (Every 2 to 7 seconds)
+    public float minTimeBetweenFlashes = 2f;
+    public float maxTimeBetweenFlashes = 7f;
+    public float flashIntensity = 5f;      
 
-    public Transform playerCamera;
-    public Animator animator;
+    [Header("Audio Settings")]
+    public AudioSource thunderAudio;       
 
-    [Header("Model Rotation Settings")]
-    public Transform characterModel;
-    public float turnSpeed = 15f;
+    private float originalIntensity;
 
-    public AudioSource footstepSound;
-    public float stepInterval = 0.4f;
-    private float stepTimer = 0f;
-
-    public AudioSource jumpSound;
-    public float jumpHeight = 1.5f;
-
-    private CharacterController controller;
-    private float xRotation = 0f;
-
-    private float verticalVelocity = 0f;
-    public float gravity = -9.81f;
-
-    void Start()
+    void OnEnable()
     {
-        controller = GetComponent<CharacterController>();
-        Cursor.lockState = CursorLockMode.Locked;
-
-        if (characterModel == null && animator != null)
+        if (lightningLight != null)
         {
-            characterModel = animator.transform;
+            originalIntensity = lightningLight.intensity;
+        }
+        StartCoroutine(LightningLoop());
+    }
+
+    IEnumerator LightningLoop()
+    {
+        while (true)
+        {
+            // 1. Wait for a random amount of time (now much shorter)
+            float waitTime = Random.Range(minTimeBetweenFlashes, maxTimeBetweenFlashes);
+            yield return new WaitForSeconds(waitTime);
+
+            // 2. Trigger the flash sequence
+            StartCoroutine(FlashLightning());
         }
     }
 
-    void Update()
+    IEnumerator FlashLightning()
     {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime * 100f;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime * 100f;
+        if (lightningLight == null) yield break;
 
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        // --- THE VISUAL FLASH ---
+        lightningLight.intensity = flashIntensity;
+        yield return new WaitForSeconds(Random.Range(0.05f, 0.1f)); 
+        lightningLight.intensity = originalIntensity;
 
-        if (playerCamera != null)
+        yield return new WaitForSeconds(Random.Range(0.05f, 0.15f));
+
+        lightningLight.intensity = flashIntensity * 0.6f; 
+        yield return new WaitForSeconds(Random.Range(0.05f, 0.1f));
+        lightningLight.intensity = originalIntensity;
+
+        // --- THE AUDIO ---
+        if (thunderAudio != null)
         {
-            playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-        }
-
-        transform.Rotate(Vector3.up * mouseX);
-
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
-
-        Vector3 move = transform.right * moveX + transform.forward * moveZ;
-
-        float activeSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * sprintMultiplier : speed;
-        move *= activeSpeed;
-
-        // --- UPDATED: 8-WAY CHARACTER VISUAL ROTATION ---
-        if (characterModel != null && characterModel != this.transform)
-        {
-            float targetAngle = 0f; // Default is facing forward (0 degrees)
-
-            // Create an input vector based on your keyboard presses
-            Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
-
-            // If the player is pressing ANY movement key...
-            if (inputDir.magnitude >= 0.1f)
-            {
-                // Calculate the exact angle (Left, Right, Backwards, or Diagonals!)
-                targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg;
-            }
-
-            // Smoothly rotate the visual model to the correct angle
-            Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
-            characterModel.localRotation = Quaternion.Slerp(characterModel.localRotation, targetRotation, Time.deltaTime * turnSpeed);
-        }
-
-        if (controller.isGrounded)
-        {
-            if (verticalVelocity < 0)
-            {
-                verticalVelocity = -2f;
-            }
-
-            if (Input.GetButtonDown("Jump"))
-            {
-                verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-
-                if (animator != null)
-                {
-                    animator.SetTrigger("JumpTrigger");
-                }
-
-                if (jumpSound != null)
-                {
-                    jumpSound.Play();
-                }
-            }
-        }
-
-        verticalVelocity += gravity * Time.deltaTime;
-
-        move.y = verticalVelocity;
-
-        controller.Move(move * Time.deltaTime);
-
-        float currentSpeed = new Vector2(moveX, moveZ).magnitude;
-
-        if (animator != null)
-        {
-            animator.SetFloat("Speed", currentSpeed);
-        }
-
-        if (currentSpeed > 0.1f && controller.isGrounded)
-        {
-            stepTimer -= Time.deltaTime;
-
-            if (stepTimer <= 0f)
-            {
-                if (footstepSound != null)
-                {
-                    footstepSound.pitch = Random.Range(0.85f, 1.15f);
-                    footstepSound.Play();
-                }
-
-                stepTimer = Input.GetKey(KeyCode.LeftShift) ? stepInterval / sprintMultiplier : stepInterval;
-            }
-        }
-        else
-        {
-            stepTimer = 0f;
-            if (footstepSound != null && footstepSound.isPlaying)
-            {
-                footstepSound.Stop();
-            }
+            // FIXED: Drastically reduced the delay so the thunder cracks almost immediately!
+            yield return new WaitForSeconds(Random.Range(0.1f, 0.4f));
+            
+            thunderAudio.pitch = Random.Range(0.85f, 1.15f); 
+            thunderAudio.Play();
         }
     }
 }
