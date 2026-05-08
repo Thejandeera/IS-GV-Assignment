@@ -283,15 +283,10 @@ public class GridManager : MonoBehaviour
                 Vector3 rayStart = new Vector3(worldPoint.x, 100f, worldPoint.z);
                 bool walkable = true;
 
-                if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 200f))
-                {
-                    if (((1 << hit.collider.gameObject.layer) & obstacleLayer) != 0)
-                    {
-                        walkable = false;
-                    }
-                }
-
-                if (walkable && Physics.CheckSphere(worldPoint, nodeRadius, obstacleLayer))
+                // Use a CheckBox that perfectly matches the size of the grid node and extends to the sky.
+                // This ensures if the tree's CapsuleCollider touches ANY part of the grid cell, it becomes unwalkable.
+                Vector3 halfExtents = new Vector3(nodeRadius, 100f, nodeRadius);
+                if (Physics.CheckBox(worldPoint + Vector3.up * 50f, halfExtents, Quaternion.identity, obstacleLayer))
                 {
                     walkable = false;
                 }

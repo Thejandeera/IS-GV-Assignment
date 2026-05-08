@@ -92,6 +92,9 @@ public class Student1Tools : EditorWindow
             }
         }
 
+        // Activate Tree Falling for stormy weather automatically
+        Student2Tools.ResumeTreeFalls();
+
         Debug.Log("<color=cyan><b>Storm Atmosphere Applied!</b></color> Dark and moody lighting updated.");
     }
 
@@ -132,6 +135,9 @@ public class Student1Tools : EditorWindow
                 obj.SetActive(false);
             }
         }
+
+        // Deactivate Tree Falling for normal weather automatically
+        Student2Tools.StopTreeFalls();
 
         Debug.Log("<color=yellow><b>Atmosphere Reset!</b></color> Skybox returned to normal.");
     }

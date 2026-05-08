@@ -31,11 +31,20 @@ public class TreeFall : MonoBehaviour
     void Start()
     {
         rb = GetComponentInParent<Rigidbody>();
+
+        // Auto-disable if the atmosphere is Normal (Stormy turns fog ON, Normal turns fog OFF)
+        if (!RenderSettings.fog)
+        {
+            this.enabled = false;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-       
+        // Unity calls OnTriggerEnter even if the script is disabled! We must check it manually.
+        if (!this.enabled) return;
+
+
         if ((other.name == "character" || other.name == "drone-model") && !hasFallen)
         {
             if (rb != null)
@@ -87,16 +96,25 @@ public class TreeFall : MonoBehaviour
 
     private IEnumerator UpdateGridAfterFall()
     {
+        // Wait 1 second before starting to paint it red, as requested
         yield return new WaitForSeconds(1f);
 
         GridManager gridManager = Object.FindFirstObjectByType<GridManager>();
-        if (gridManager != null && rb != null)
+        if (gridManager == null || rb == null) yield break;
+
+        Collider treeCollider = rb.GetComponent<Collider>();
+        if (treeCollider == null) yield break;
+
+        // Loop for a few more seconds to keep updating the grid as the tree bounces or settles
+        float timer = 0f;
+        while (timer < 4f)
         {
-            Collider treeCollider = rb.GetComponent<Collider>();
-            if (treeCollider != null)
-            {
-                gridManager.AddDynamicObstacle(rb.gameObject, treeCollider);
-            }
+            gridManager.AddDynamicObstacle(rb.gameObject, treeCollider);
+            yield return new WaitForSeconds(0.2f);
+            timer += 0.2f;
         }
+
+        // One final lock-in
+        gridManager.AddDynamicObstacle(rb.gameObject, treeCollider);
     }
 }
