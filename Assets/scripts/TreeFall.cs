@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class TreeFall : MonoBehaviour
 {
@@ -78,6 +79,23 @@ public class TreeFall : MonoBehaviour
                 }
 
                 Debug.Log("Signal Received: Tree is falling by " + other.name);
+                
+                StartCoroutine(UpdateGridAfterFall());
+            }
+        }
+    }
+
+    private IEnumerator UpdateGridAfterFall()
+    {
+        yield return new WaitForSeconds(1f);
+
+        GridManager gridManager = Object.FindFirstObjectByType<GridManager>();
+        if (gridManager != null && rb != null)
+        {
+            Collider treeCollider = rb.GetComponent<Collider>();
+            if (treeCollider != null)
+            {
+                gridManager.AddDynamicObstacle(rb.gameObject, treeCollider);
             }
         }
     }
