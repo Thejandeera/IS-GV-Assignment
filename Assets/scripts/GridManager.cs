@@ -239,6 +239,74 @@ public class GridManager : MonoBehaviour
 
 
     // ==============================================================================
+    // DYNAMIC OBSTACLES (FALLEN TREES)
+    // ==============================================================================
+    public void AddDynamicObstacle(GameObject obstacleObj, Collider obstacleCollider)
+    {
+        // 1. Find the first layer defined in our obstacleLayer mask
+        int targetLayer = -1;
+        for (int i = 0; i < 32; i++)
+        {
+            if ((obstacleLayer.value & (1 << i)) != 0)
+            {
+                targetLayer = i;
+                break;
+            }
+        }
+
+        // 2. Change the object's layer so Physics checks will hit it
+        if (targetLayer != -1)
+        {
+            obstacleObj.layer = targetLayer;
+        }
+
+        // 3. Re-evaluate the nodes around the object's bounds
+        Bounds bounds = obstacleCollider.bounds;
+        bounds.Expand(nodeRadius * 4); // Extra padding to be safe
+
+        Node minNode = GetNodeFromWorldPoint(bounds.min);
+        Node maxNode = GetNodeFromWorldPoint(bounds.max);
+
+        int startX = Mathf.Clamp(Mathf.Min(minNode.gridX, maxNode.gridX) - 2, 0, gridSizeX - 1);
+        int endX = Mathf.Clamp(Mathf.Max(minNode.gridX, maxNode.gridX) + 2, 0, gridSizeX - 1);
+        int startY = Mathf.Clamp(Mathf.Min(minNode.gridY, maxNode.gridY) - 2, 0, gridSizeY - 1);
+        int endY = Mathf.Clamp(Mathf.Max(minNode.gridY, maxNode.gridY) + 2, 0, gridSizeY - 1);
+
+        for (int x = startX; x <= endX; x++)
+        {
+            for (int y = startY; y <= endY; y++)
+            {
+                Node node = grid[x, y];
+                Vector3 worldPoint = node.worldPosition;
+                
+                // Same logic as CreateGrid()
+                Vector3 rayStart = new Vector3(worldPoint.x, 100f, worldPoint.z);
+                bool walkable = true;
+
+                // Use a CheckBox that perfectly matches the size of the grid node and extends to the sky.
+                // This ensures if the tree's CapsuleCollider touches ANY part of the grid cell, it becomes unwalkable.
+                Vector3 halfExtents = new Vector3(nodeRadius, 100f, nodeRadius);
+                if (Physics.CheckBox(worldPoint + Vector3.up * 50f, halfExtents, Quaternion.identity, obstacleLayer))
+                {
+                    walkable = false;
+                }
+
+                // If walkability changed, update this node and its neighbors
+                if (node.isWalkable != walkable)
+                {
+                    node.isWalkable = walkable;
+                    UpdateNodeNeighbors(node);
+
+                    if (x + 1 < gridSizeX) UpdateNodeNeighbors(grid[x + 1, y]);
+                    if (x - 1 >= 0) UpdateNodeNeighbors(grid[x - 1, y]);
+                    if (y + 1 < gridSizeY) UpdateNodeNeighbors(grid[x, y + 1]);
+                    if (y - 1 >= 0) UpdateNodeNeighbors(grid[x, y - 1]);
+                }
+            }
+        }
+    }
+
+    // ==============================================================================
     // VIVA DEBUGGER (Visualizing the Graph for the Teachers)
     // ==============================================================================
     void OnDrawGizmos()

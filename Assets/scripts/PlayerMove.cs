@@ -42,6 +42,8 @@ public class PlayerMove : MonoBehaviour
     public AudioSource pushSoundSource;
 
     private Rigidbody currentTreeRb;
+    private GridManager gridManager;
+    private float gridUpdateTimer = 0f;
 
     void Start()
     {
@@ -55,6 +57,8 @@ public class PlayerMove : MonoBehaviour
         {
             characterModel = animator.transform;
         }
+
+        gridManager = Object.FindFirstObjectByType<GridManager>();
     }
 
     void Update()
@@ -84,6 +88,12 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
+            if (isPushing && currentTreeRb != null && gridManager != null)
+            {
+                Collider col = currentTreeRb.GetComponent<Collider>();
+                if (col != null) gridManager.AddDynamicObstacle(currentTreeRb.gameObject, col);
+            }
+
             ResetTreeMass();
             isPushing = false;
             if (animator != null) animator.SetBool("isPushing", false);
@@ -178,6 +188,17 @@ public class PlayerMove : MonoBehaviour
                     Vector3 pushDirection = transform.forward;
                     pushDirection.y = 0;
                     currentTreeRb.AddForce(pushDirection * pushForce, ForceMode.Acceleration);
+
+                    if (gridManager != null)
+                    {
+                        gridUpdateTimer += Time.deltaTime;
+                        if (gridUpdateTimer >= 0.15f)
+                        {
+                            Collider col = hit.collider;
+                            gridManager.AddDynamicObstacle(hit.collider.gameObject, col);
+                            gridUpdateTimer = 0f;
+                        }
+                    }
                 }
             }
         }
