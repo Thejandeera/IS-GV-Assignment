@@ -19,6 +19,7 @@ public class TreeFall : MonoBehaviour
 
     [Header("Audio Settings")]
     public AudioSource treeFallSound;
+    public AudioSource treeDragSound; // බිම දිගේ ඇදෙන සද්දෙට
 
     [Range(0.1f, 2f)]
     public float minPitch = 0.85f;
@@ -36,6 +37,29 @@ public class TreeFall : MonoBehaviour
         if (!RenderSettings.fog)
         {
             this.enabled = false;
+        }
+    }
+
+    void Update()
+    {
+        // ගහ වැටුනට පස්සේ බිම දිගේ ඇදෙනවා නම් සද්දෙ ප්ලේ කරන්න
+        if (hasFallen && rb != null && treeDragSound != null)
+        {
+            // ගහේ වේගය (velocity) 0.1 කට වඩා වැඩි නම් විතරක් සද්දෙ ඇහෙන්න ඕන
+            if (rb.linearVelocity.magnitude > 0.1f || rb.angularVelocity.magnitude > 0.1f)
+            {
+                if (!treeDragSound.isPlaying)
+                {
+                    treeDragSound.Play();
+                }
+            }
+            else
+            {
+                if (treeDragSound.isPlaying)
+                {
+                    treeDragSound.Stop();
+                }
+            }
         }
     }
 
