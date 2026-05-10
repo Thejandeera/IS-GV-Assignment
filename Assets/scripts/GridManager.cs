@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 // ==============================================================================
-// GRAPHICS & WORLD BUILDER ROLE (YOUR ROLE)
+// GRAPHICS & WORLD BUILDER ROLE 
 // Description: This script converts the 3D map into a 2D mathematical grid.
 // It uses Physics to detect where the "Obstacle" logs are and marks those 
 // specific grid cells as unwalkable so the AI knows to avoid them.
@@ -137,10 +137,18 @@ public class GridManager : MonoBehaviour
 
 
     // ==============================================================================
-    // TEAM INTEGRATION API (DAY 3 RUBRIC REQUIREMENT)
-    // These functions are left ready for Student 2 and Student 3 to call from 
-    // their own scripts. They do not contain their algorithm logic, just the hooks!
+    // TEAM INTEGRATION API
     // ==============================================================================
+
+    /// <summary>
+    /// Returns all nodes in the grid as a flat enumerable.
+    /// Used by BFSSearchAlgorithm's debug visualizer to draw blocked nodes.
+    /// </summary>
+    public IEnumerable<Node> GetAllNodes()
+    {
+        if (grid == null) yield break;
+        foreach (Node n in grid) yield return n;
+    }
 
     /// <summary>
     /// FOR STUDENT 3 (INTELLIGENT SEARCH / A* PATHFINDING):

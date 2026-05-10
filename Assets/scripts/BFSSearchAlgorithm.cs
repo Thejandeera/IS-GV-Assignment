@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 // ==============================================================================
 // Description: Implements the BFS Pathfinding Algorithm as a secondary/backup search.
@@ -14,6 +15,13 @@ public class BFSSearchAlgorithm : MonoBehaviour
     private List<Node> debugFrontier = new List<Node>();
     private List<Node> debugExplored = new List<Node>();
     private List<Node> debugFinalPath = new List<Node>();
+
+    private GridManager gridManager;
+
+    void Start()
+    {
+        gridManager = FindObjectOfType<GridManager>();
+    }
 
     void Update()
     {
@@ -108,6 +116,17 @@ public class BFSSearchAlgorithm : MonoBehaviour
     void OnDrawGizmos()
     {
         if (!showDebug) return;
+
+        // 0. Draw Blocked Nodes (Gray) — drawn first so other colors render on top
+        if (gridManager != null)
+        {
+            Gizmos.color = new Color(0.4f, 0.4f, 0.4f, 0.35f); // Transparent Gray
+            foreach (Node node in gridManager.GetAllNodes())
+            {
+                if (!node.isWalkable)
+                    Gizmos.DrawCube(node.worldPosition, Vector3.one * 2.5f);
+            }
+        }
 
         // 1. Draw Explored Nodes (Red)
         if (debugExplored != null)
