@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 // ==============================================================================
 // Description: Implements the BFS Pathfinding Algorithm as a secondary/backup search.
-// Includes a Toggleable Debug Mode (Task 2, 3, 4) to visualize the AI's "brain".
+// Includes a Toggleable Debug Mode to visualize the AI's "brain".
 // ==============================================================================
 public class BFSSearchAlgorithm : MonoBehaviour
 {

@@ -271,4 +271,56 @@ public class DroneMovement : MonoBehaviour
             Debug.Log("Drone reached the target!");
         }
     }
+
+    // ==========================================================================
+    // DYNAMIC PATH RECALCULATION
+    // Call these from any other script to safely interrupt the drone mid-flight
+    // and force it to replan its route from its current position.
+    // ==========================================================================
+
+    /// <summary>
+    /// Safely stops the current flight path and recalculates a new one
+    /// to the SAME target from the drone's current world position.
+    /// The drone will hover in place for one frame, then resume moving
+    /// on the very next Update() cycle.
+    /// 
+    /// Usage from any other script:
+    ///     FindObjectOfType<DroneMovement>().RecalculatePath();
+    /// </summary>
+    public void RecalculatePath()
+    {
+        currentPath = null;
+        currentPathIndex = 0;
+        Debug.Log("<color=orange><b>Drone:</b></color> Path interrupted — recalculating from current position...");
+    }
+
+    /// <summary>
+    /// Safely stops the current flight path, switches to a NEW target,
+    /// and recalculates a route from the drone's current world position.
+    /// Use this when the destination itself has changed during gameplay
+    /// (e.g., a moving objective, a player-chosen waypoint, etc.).
+    ///
+    /// Usage from any other script:
+    ///     Transform newDest = someGameObject.transform;
+    ///     FindObjectOfType<DroneMovement>().RecalculatePath(newDest);
+    /// </summary>
+    public void RecalculatePath(Transform newTarget)
+    {
+        if (newTarget == null)
+        {
+            Debug.LogWarning("<color=red>RecalculatePath:</color> New target is null. Ignoring request.");
+            return;
+        }
+
+        // Step 1: Swap the destination first.
+        target = newTarget;
+
+        // Step 2: Discard the in-progress path.
+        currentPath = null;
+        currentPathIndex = 0;
+
+        Debug.Log($"<color=orange><b>Drone:</b></color> Target changed to '{newTarget.name}' — recalculating path...");
+
+        // Step 3: Same as above — Update() picks this up automatically next frame.
+    }
 }
