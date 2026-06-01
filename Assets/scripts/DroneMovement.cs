@@ -30,7 +30,7 @@ public class DroneMovement : MonoBehaviour
     private bool hasAnswered = false;
     private bool isVisible = false;
 
-    // --- NEW VARIABLES FOR ENTER LOGIC ---
+  
     private bool isWaitingForEnter = false;
     private bool showEnterMessage = false;
 
@@ -54,13 +54,13 @@ public class DroneMovement : MonoBehaviour
             if (pObj != null) player = pObj.transform;
         }
 
-        // Hide the drone at the start of the game
+       
         SetDroneVisible(false);
     }
 
     void Update()
     {
-        // 1. STORM DETECTION & Y/N PROMPT
+        
         if (!hasAnswered)
         {
             if (RenderSettings.fog)
@@ -87,28 +87,28 @@ public class DroneMovement : MonoBehaviour
             return;
         }
 
-        // Propellers should spin if drone is visible
+        
         if (isVisible) SpinPropellers();
 
-        // 2. WAIT FOR ENTER KEY
+     
         if (isWaitingForEnter)
         {
-            HoverInPlace(); // Keep bobbing up and down while waiting
+            HoverInPlace();
 
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             {
                 isWaitingForEnter = false;
-                showEnterMessage = false; // Hide message instantly if they press Enter early
+                showEnterMessage = false; 
                 startMoving = true;
                 Debug.Log("Drone starting navigation!");
             }
-            return; // Block the pathfinding until Enter is pressed
+            return; 
         }
 
-        // Do nothing if we haven't started moving
+      
         if (!startMoving) return;
 
-        // 3. TARGET ACQUISITION & PATHFINDING
+       
         if (target == null)
         {
             GameObject targetObj = GameObject.Find("Target") ?? GameObject.Find("End");
@@ -130,11 +130,11 @@ public class DroneMovement : MonoBehaviour
             }
         }
 
-        // 4. MOVE
+        
         MoveAlongPath();
     }
 
-    // --- PROFESSIONAL GUI DISPLAY ---
+    
     void OnGUI()
     {
         if (isPrompting || showEnterMessage)
@@ -143,28 +143,28 @@ public class DroneMovement : MonoBehaviour
             float boxHeight = 130;
             Rect boxRect = new Rect((Screen.width - boxWidth) / 2, Screen.height / 2 - 150, boxWidth, boxHeight);
 
-            // Draw a sleek, dark semi-transparent background box
+            
             GUI.color = new Color(0, 0, 0, 0.85f);
             GUI.Box(boxRect, "");
             GUI.color = Color.white;
 
-            // Setup professional text styling
+            
             GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 24,
                 fontStyle = FontStyle.Bold,
                 alignment = TextAnchor.MiddleCenter
             };
-            titleStyle.normal.textColor = new Color(1f, 0.8f, 0.2f); // Gold Title
+            titleStyle.normal.textColor = new Color(1f, 0.8f, 0.2f); 
 
             GUIStyle subStyle = new GUIStyle(GUI.skin.label)
             {
                 fontSize = 16,
                 alignment = TextAnchor.MiddleCenter
             };
-            subStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f); // Off-white Subtext
+            subStyle.normal.textColor = new Color(0.9f, 0.9f, 0.9f);
 
-            // Draw the correct text based on the state
+          
             if (isPrompting)
             {
                 GUI.Label(new Rect(boxRect.x, boxRect.y + 20, boxWidth, 40), "STORM DETECTED", titleStyle);
@@ -178,10 +178,10 @@ public class DroneMovement : MonoBehaviour
         }
     }
 
-    // --- SEQUENCE LOGIC ---
+ 
     IEnumerator AppearAndStartSequence()
     {
-        // 1. Teleport directly above the player
+        
         if (player != null)
         {
             transform.position = player.position + new Vector3(0, 4.0f, 0);
@@ -190,21 +190,21 @@ public class DroneMovement : MonoBehaviour
 
         baseY = transform.position.y;
 
-        // 2. Make visible and turn on audio (Buzzing starts instantly!)
+        
         SetDroneVisible(true);
 
-        // 3. Trigger the "Press Enter" message
+        
         isWaitingForEnter = true;
         showEnterMessage = true;
 
-        // 4. Auto-hide the message after 4 seconds so it isn't annoying
+        
         yield return new WaitForSeconds(4.0f);
         showEnterMessage = false;
 
-        // NOTE: The drone will still wait for you to press Enter, even after the message fades away!
+        
     }
 
-    // --- HELPER FUNCTIONS ---
+
     void SetDroneVisible(bool state)
     {
         isVisible = state;
@@ -272,11 +272,7 @@ public class DroneMovement : MonoBehaviour
         }
     }
 
-    // ==========================================================================
-    // DYNAMIC PATH RECALCULATION
-    // Call these from any other script to safely interrupt the drone mid-flight
-    // and force it to replan its route from its current position.
-    // ==========================================================================
+    
 
     /// <summary>
     /// Safely stops the current flight path and recalculates a new one
@@ -312,15 +308,15 @@ public class DroneMovement : MonoBehaviour
             return;
         }
 
-        // Step 1: Swap the destination first.
+        
         target = newTarget;
 
-        // Step 2: Discard the in-progress path.
+        
         currentPath = null;
         currentPathIndex = 0;
 
         Debug.Log($"<color=orange><b>Drone:</b></color> Target changed to '{newTarget.name}' — recalculating path...");
 
-        // Step 3: Same as above — Update() picks this up automatically next frame.
+       
     }
 }

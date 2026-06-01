@@ -63,7 +63,7 @@ public class PlayerMove : MonoBehaviour
 
     void Update()
     {
-        // 1. Mouse Look
+        
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime * 100f;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime * 100f;
 
@@ -77,7 +77,7 @@ public class PlayerMove : MonoBehaviour
 
         transform.Rotate(Vector3.up * mouseX);
 
-        // 2. Push Logic
+   
         CheckForPushUI();
 
         if (Input.GetKey(KeyCode.F))
@@ -99,7 +99,7 @@ public class PlayerMove : MonoBehaviour
             if (animator != null) animator.SetBool("isPushing", false);
         }
 
-        // 3. Push Sound
+        
         if (isPushing && currentTreeRb != null)
         {
             if (pushSoundSource != null && !pushSoundSource.isPlaying) pushSoundSource.Play();
@@ -109,7 +109,7 @@ public class PlayerMove : MonoBehaviour
             if (pushSoundSource != null && pushSoundSource.isPlaying) pushSoundSource.Stop();
         }
 
-        // 4. Movement Logic
+        
         float moveX = isPushing ? 0 : Input.GetAxis("Horizontal");
         float moveZ = isPushing ? 0 : Input.GetAxis("Vertical");
 
@@ -117,24 +117,24 @@ public class PlayerMove : MonoBehaviour
         float activeSpeed = Input.GetKey(KeyCode.LeftShift) ? speed * sprintMultiplier : speed;
         move *= activeSpeed;
 
-        // --- UPDATED: 8-WAY ROTATION WITH AUTO-FORWARD RESET ---
+       
         if (characterModel != null && characterModel != this.transform && !isPushing)
         {
-            float targetAngle = 0f; // මෙතැනින් තමයි Auto Forward වෙන්නේ (Default 0)
+            float targetAngle = 0f; 
             Vector3 inputDir = new Vector3(moveX, 0f, moveZ).normalized;
 
             if (inputDir.magnitude >= 0.1f)
             {
-                // WASD ඔබන විට ඒ දිශාවට හැරේ
+              
                 targetAngle = Mathf.Atan2(inputDir.x, inputDir.z) * Mathf.Rad2Deg;
             }
-            // WASD අතහැරිය විට targetAngle එක 0 වන නිසා මොඩල් එක ඉදිරියට හැරේ
+         
 
             Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
             characterModel.localRotation = Quaternion.Slerp(characterModel.localRotation, targetRotation, Time.deltaTime * turnSpeed);
         }
 
-        // 5. Jump & Physics
+        
         if (controller.isGrounded)
         {
             if (verticalVelocity < 0) verticalVelocity = -2f;
@@ -151,13 +151,13 @@ public class PlayerMove : MonoBehaviour
         move.y = verticalVelocity;
         controller.Move(move * Time.deltaTime);
 
-        // 6. Animation & Footsteps
+        
         float currentSpeed = new Vector2(moveX, moveZ).magnitude;
         if (animator != null) animator.SetFloat("Speed", currentSpeed);
         HandleFootsteps(currentSpeed);
     }
 
-    // UI පෙන්වන කොටස
+   
     void CheckForPushUI()
     {
         if (pushUI == null) return;
