@@ -19,6 +19,7 @@ public class GridManager : MonoBehaviour
 
     void Start()
     {
+        //calculating node size
         nodeDiameter = nodeRadius * 2;
         
         gridSizeX = Mathf.RoundToInt(gridWorldSize.x / nodeDiameter);
@@ -61,6 +62,7 @@ public class GridManager : MonoBehaviour
                     }
                 }
 
+                //point check for hit the ray
                 if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, 200f))
                 {
                     if (Terrain.activeTerrain == null) worldPoint.y = hit.point.y;
@@ -72,7 +74,7 @@ public class GridManager : MonoBehaviour
                     }
                 }
 
-               
+                // doing sphere check for detect obstacle   
                 if (walkable && Physics.CheckSphere(worldPoint, nodeRadius, obstacleLayer))
                 {
                     walkable = false;
@@ -199,9 +201,10 @@ public class GridManager : MonoBehaviour
         Terrain t = Terrain.activeTerrain;
         if (t == null) return 0;
 
+        //Access the terrain data
         TerrainData td = t.terrainData;
         
-   
+        
         float mapX = ((worldPos.x - t.transform.position.x) / td.size.x) * td.alphamapWidth;
         float mapZ = ((worldPos.z - t.transform.position.z) / td.size.z) * td.alphamapHeight;
 
@@ -299,7 +302,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-  
+    // draw grid border and grid nodes
     void OnDrawGizmos()
     {
         
