@@ -19,7 +19,7 @@ public class TreeFall : MonoBehaviour
 
     [Header("Audio Settings")]
     public AudioSource treeFallSound;
-    public AudioSource treeDragSound; // බිම දිගේ ඇදෙන සද්දෙට
+    public AudioSource treeDragSound; 
 
     [Range(0.1f, 2f)]
     public float minPitch = 0.85f;
@@ -33,7 +33,7 @@ public class TreeFall : MonoBehaviour
     {
         rb = GetComponentInParent<Rigidbody>();
 
-        // Auto-disable if the atmosphere is Normal (Stormy turns fog ON, Normal turns fog OFF)
+       
         if (!RenderSettings.fog)
         {
             this.enabled = false;
@@ -42,10 +42,10 @@ public class TreeFall : MonoBehaviour
 
     void Update()
     {
-        // ගහ වැටුනට පස්සේ බිම දිගේ ඇදෙනවා නම් සද්දෙ ප්ලේ කරන්න
+        
         if (hasFallen && rb != null && treeDragSound != null)
         {
-            // ගහේ වේගය (velocity) 0.1 කට වඩා වැඩි නම් විතරක් සද්දෙ ඇහෙන්න ඕන
+            
             if (rb.linearVelocity.magnitude > 0.1f || rb.angularVelocity.magnitude > 0.1f)
             {
                 if (!treeDragSound.isPlaying)
@@ -65,7 +65,7 @@ public class TreeFall : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Unity calls OnTriggerEnter even if the script is disabled! We must check it manually.
+       
         if (!this.enabled) return;
 
 
@@ -120,7 +120,7 @@ public class TreeFall : MonoBehaviour
 
     private IEnumerator UpdateGridAfterFall()
     {
-        // Wait 1 second before starting to paint it red, as requested
+      
         yield return new WaitForSeconds(1f);
 
         GridManager gridManager = Object.FindFirstObjectByType<GridManager>();
@@ -129,7 +129,7 @@ public class TreeFall : MonoBehaviour
         Collider treeCollider = rb.GetComponent<Collider>();
         if (treeCollider == null) yield break;
 
-        // Loop for a few more seconds to keep updating the grid as the tree bounces or settles
+      
         float timer = 0f;
         while (timer < 4f)
         {
@@ -138,7 +138,7 @@ public class TreeFall : MonoBehaviour
             timer += 0.2f;
         }
 
-        // One final lock-in
+       
         gridManager.AddDynamicObstacle(rb.gameObject, treeCollider);
     }
 }

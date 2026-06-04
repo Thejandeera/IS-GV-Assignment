@@ -1,23 +1,11 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// ==============================================================================
-// INTELLIGENT SEARCH / A* PATHFINDING ROLE (STUDENT 3)
-// Description: Implements the A* Pathfinding Algorithm and Priority Queue Data Structure.
-// Leaves the existing codebase untouched, as requested.
-// ==============================================================================
+
 public class AStarSearchAlgorithm : MonoBehaviour
 {
-    // ==============================================================================
-    // HEURISTIC FUNCTION
-    // Mathematical Justification: Manhattan Distance
-    // The GridManager uses a 4-way connected graph (Up, Down, Left, Right).
-    // Because diagonal movement is not possible, the shortest geometric path 
-    // is constrained to the X and Y axes. The Manhattan distance formula
-    // (h(n) = |x1 - x2| + |y1 - y2|) perfectly represents the exact minimum 
-    // number of steps required to reach the target on this grid. Thus, the 
-    // heuristic is completely ADMISSIBLE, as it will never overestimate the true cost.
-    // ==============================================================================
+   
+    
     private float GetHeuristicCost(Node a, Node b)
     {
         return Mathf.Abs(a.gridX - b.gridX) + Mathf.Abs(a.gridY - b.gridY);
@@ -37,10 +25,10 @@ public class AStarSearchAlgorithm : MonoBehaviour
         if (startNode == null || targetNode == null || !startNode.isWalkable || !targetNode.isWalkable)
         {
             Debug.LogWarning("AStarSearch: Invalid start or target node.");
-            return null; // Invalid path
+            return null; 
         }
 
-        // The Priority Queue for the Frontier (Open Set)
+       
         PriorityQueue<Node> openSet = new PriorityQueue<Node>();
         HashSet<Node> closedSet = new HashSet<Node>();
 
@@ -67,7 +55,7 @@ public class AStarSearchAlgorithm : MonoBehaviour
             {
                 if (!neighbor.isWalkable || closedSet.Contains(neighbor)) continue;
 
-                // For a uniform grid, the movement cost to a neighbor is 1 unit.
+               
                 float tentativeGCost = gCost[current] + 1f;
 
                 bool inOpenSet = openSet.Contains(neighbor);
@@ -84,7 +72,7 @@ public class AStarSearchAlgorithm : MonoBehaviour
                     }
                     else
                     {
-                        // Update existing node if we found a shorter path to it
+                       
                         openSet.UpdatePriority(neighbor, fCost[neighbor]);
                     }
                 }
@@ -92,7 +80,7 @@ public class AStarSearchAlgorithm : MonoBehaviour
         }
 
         Debug.LogWarning("AStarSearch: No path found to the target.");
-        return null; // Path not found
+        return null; 
     }
 
     private List<Node> RetracePath(Node startNode, Node endNode, Dictionary<Node, Node> cameFrom)
@@ -106,17 +94,13 @@ public class AStarSearchAlgorithm : MonoBehaviour
             current = cameFrom[current];
         }
         
-        // Path currently goes from End -> Start, we need to reverse it so it can be traversed
+        
         path.Reverse();
         return path;
     }
 }
 
-// ==============================================================================
-// PRIORITY QUEUE IMPLEMENTATION (STUDENT 3 RUBRIC REQUIREMENT)
-// Description: A generic Min-Heap Priority Queue.
-// Time Complexity: O(log N) for Insertion (Enqueue) and Extraction (Dequeue).
-// ==============================================================================
+
 public class PriorityQueue<T>
 {
     private struct PriorityItem
@@ -141,7 +125,7 @@ public class PriorityQueue<T>
 
         T firstItem = elements[0].Item;
         
-        // Move the last item to the top and bubble it down
+       
         elements[0] = elements[elements.Count - 1];
         elements.RemoveAt(elements.Count - 1);
 
@@ -155,8 +139,7 @@ public class PriorityQueue<T>
 
     public bool Contains(T item)
     {
-        // For performance, a separate HashSet could be maintained, but for this scale
-        // checking the underlying list is sufficient.
+       
         return elements.Exists(e => EqualityComparer<T>.Default.Equals(e.Item, item));
     }
 
@@ -202,13 +185,13 @@ public class PriorityQueue<T>
             int rightChildIndex = index * 2 + 2;
             int smallestIndex = index;
 
-            // Check if left child is smaller
+            
             if (leftChildIndex <= lastIndex && elements[leftChildIndex].Priority < elements[smallestIndex].Priority)
             {
                 smallestIndex = leftChildIndex;
             }
 
-            // Check if right child is smaller than current smallest
+            
             if (rightChildIndex <= lastIndex && elements[rightChildIndex].Priority < elements[smallestIndex].Priority)
             {
                 smallestIndex = rightChildIndex;

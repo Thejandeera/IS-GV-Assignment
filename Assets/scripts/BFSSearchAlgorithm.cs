@@ -2,16 +2,13 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
-// ==============================================================================
-// Description: Implements the BFS Pathfinding Algorithm as a secondary/backup search.
-// Includes a Toggleable Debug Mode to visualize the AI's "brain".
-// ==============================================================================
+
 public class BFSSearchAlgorithm : MonoBehaviour
 {
     [Header("Debug Settings")]
     public bool showDebug = true;
 
-    // Debug State Tracking (To draw the Gizmos)
+  
     private List<Node> debugFrontier = new List<Node>();
     private List<Node> debugExplored = new List<Node>();
     private List<Node> debugFinalPath = new List<Node>();
@@ -25,7 +22,7 @@ public class BFSSearchAlgorithm : MonoBehaviour
 
     void Update()
     {
-        // Toggle Debug Mode with Tab key
+        
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             showDebug = !showDebug;
@@ -49,7 +46,7 @@ public class BFSSearchAlgorithm : MonoBehaviour
             return null;
         }
 
-        // Clear previous debug data
+       
         debugFrontier.Clear();
         debugExplored.Clear();
         debugFinalPath.Clear();
@@ -66,7 +63,7 @@ public class BFSSearchAlgorithm : MonoBehaviour
         {
             Node current = frontier.Dequeue();
 
-            // Track for debug (the nodes we have fully explored)
+            
             debugExplored.Add(current);
 
             if (current == targetNode)
@@ -82,7 +79,7 @@ public class BFSSearchAlgorithm : MonoBehaviour
                     frontier.Enqueue(neighbor);
                     cameFrom[neighbor] = current;
                     
-                    // Track for debug (nodes we have seen but not fully explored yet)
+                    
                     debugFrontier.Add(neighbor);
                 }
             }
@@ -98,9 +95,9 @@ public class BFSSearchAlgorithm : MonoBehaviour
                 currentPath.Add(current);
                 current = cameFrom[current];
             }
-            currentPath.Reverse(); // Reverse so it goes from start -> target
+            currentPath.Reverse();
             
-            // Save final path for debug drawing
+          
             debugFinalPath = new List<Node>(currentPath);
             
             return currentPath;
@@ -109,18 +106,15 @@ public class BFSSearchAlgorithm : MonoBehaviour
         return null;
     }
 
-    // ==============================================================================
-    // DEBUG VISUALIZER
-    // Draws the search frontiers, explored nodes, and final path in the Scene View.
-    // ==============================================================================
+    
     void OnDrawGizmos()
     {
         if (!showDebug) return;
 
-        // 0. Draw Blocked Nodes (Gray) — drawn first so other colors render on top
+       
         if (gridManager != null)
         {
-            Gizmos.color = new Color(0.4f, 0.4f, 0.4f, 0.35f); // Transparent Gray
+            Gizmos.color = new Color(0.4f, 0.4f, 0.4f, 0.35f);
             foreach (Node node in gridManager.GetAllNodes())
             {
                 if (!node.isWalkable)
@@ -128,27 +122,27 @@ public class BFSSearchAlgorithm : MonoBehaviour
             }
         }
 
-        // 1. Draw Explored Nodes (Red)
+       
         if (debugExplored != null)
         {
-            Gizmos.color = new Color(1f, 0f, 0f, 0.4f); // Transparent Red
+            Gizmos.color = new Color(1f, 0f, 0f, 0.4f); 
             foreach (Node node in debugExplored)
             {
                 Gizmos.DrawCube(node.worldPosition, Vector3.one * 2.5f);
             }
         }
 
-        // 2. Draw Frontier Nodes (Yellow)
+        
         if (debugFrontier != null)
         {
-            Gizmos.color = new Color(1f, 0.92f, 0.016f, 0.6f); // Transparent Yellow
+            Gizmos.color = new Color(1f, 0.92f, 0.016f, 0.6f); 
             foreach (Node node in debugFrontier)
             {
                 Gizmos.DrawCube(node.worldPosition, Vector3.one * 2.6f);
             }
         }
 
-        // 3. Draw Final Path (Green Line & Spheres)
+      
         if (debugFinalPath != null && debugFinalPath.Count > 0)
         {
             Gizmos.color = Color.green;
@@ -156,7 +150,7 @@ public class BFSSearchAlgorithm : MonoBehaviour
             {
                 Gizmos.DrawSphere(debugFinalPath[i].worldPosition, 0.5f);
                 
-                // Draw connecting lines
+                
                 if (i > 0)
                 {
                     Gizmos.DrawLine(debugFinalPath[i - 1].worldPosition, debugFinalPath[i].worldPosition);
