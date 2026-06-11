@@ -18,6 +18,7 @@ public class LightningController : MonoBehaviour
 
     void OnEnable()
     {
+        
         if (lightningLight != null)
         {
             originalIntensity = lightningLight.intensity;
